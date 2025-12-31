@@ -4,25 +4,65 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository contains shell scripts for downloading Canada Public Accounts data from government websites. The scripts handle archived data (2021 and earlier from epe.lac-bac.gc.ca), 2022 data from the Wayback Machine archive, and recent data (2023+ from canada.ca and tpsgc-pwgsc.gc.ca).
+This repository contains a Ruby CLI for downloading Canada Public Accounts data from government websites. The CLI handles archived data (2021 and earlier from epe.lac-bac.gc.ca), 2022 data from the Wayback Machine archive, and recent data (2023+ from canada.ca and tpsgc-pwgsc.gc.ca).
 
 ## Commands
 
-### Download data for a single year
+### Scrape data for one or more years
+```bash
+./bin/pb scrape YEARS
+```
+
+The `YEARS` parameter supports multiple formats:
+- **Single year**: `./bin/pb scrape 2025`
+- **Year range**: `./bin/pb scrape 2021-2025`
+- **Multiple years/ranges**: `./bin/pb scrape 2015,2017,2019-2025`
+
+All downloaded data is saved to `./raw/YEAR/` directories.
+
+### Legacy shell scripts
+
+The original shell scripts are still available:
 ```bash
 ./download_public_accounts.sh YEAR [output_dir]
-```
-- Downloads all HTML and PDF files for the specified year
-- Defaults to `./public_accounts_YEAR` directory if output_dir not specified
-- Example: `./download_public_accounts.sh 2020`
-- Example: `./download_public_accounts.sh 2025 ./data`
-
-### Download data for multiple years
-```bash
 ./download_multiple_years.sh START_YEAR END_YEAR
 ```
-- Downloads data for a range of years sequentially
-- Example: `./download_multiple_years.sh 2018 2020`
+
+## Project Structure
+
+```
+bin/pb                              # CLI executable
+lib/
+  pb_cli.rb                         # CLI entry point
+  pb_cli/commands/
+    scrape.rb                       # Scrape command implementation
+test/
+  test_helper.rb                    # Test configuration
+  commands/
+    test_scrape.rb                  # Scrape command tests
+Gemfile                             # Ruby dependencies
+Rakefile                            # Test tasks
+```
+
+## Development
+
+### Running tests
+```bash
+bundle exec rake test
+```
+
+### Adding new commands
+
+1. Create a new file in `lib/pb_cli/commands/`
+2. Add the command to the case statement in `lib/pb_cli.rb`
+3. Add tests in `test/commands/`
+
+### Commit message conventions
+
+- Write clear, descriptive commit messages
+- Do NOT include "Generated with Claude Code" or similar AI attribution footers
+- Do NOT include "Co-Authored-By: Claude" signatures
+- Focus on the technical changes and their purpose
 
 ## Architecture
 
