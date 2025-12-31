@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "Bash(./download_public_accounts.sh:*)",
+      "Bash(ls:*)",
+      "Bash(/Volumes/floppy/public_accounts/count_files_by_year.sh:*)",
+      "Bash(bash:*)",
+      "WebFetch(domain:epe.lac-bac.gc.ca)",
+      "Bash(python3:*)",
+      "Bash(pip3 install:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(/Volumes/floppy/public_accounts/compare_files_across_years.sh:*)"
+    ]
+  }
+}
