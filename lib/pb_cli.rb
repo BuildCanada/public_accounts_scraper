@@ -16,6 +16,9 @@ module PbCli
       when 'scrape'
         require_relative 'pb_cli/commands/scrape'
         Commands::Scrape.new.call(command_args)
+      when 'extract'
+        require_relative 'pb_cli/commands/extract'
+        Commands::Extract.new.call(command_args)
       else
         puts "Unknown command: #{command}"
         puts ""
@@ -29,11 +32,14 @@ module PbCli
       puts ""
       puts "Usage:"
       puts "  pb scrape YEARS"
+      puts "  pb extract [EXTRACTOR_NAME]"
       puts ""
       puts "Examples:"
       puts "  pb scrape 2025              # Scrape single year"
       puts "  pb scrape 2021-2025         # Scrape year range"
       puts "  pb scrape 2015,2017,2019-2025  # Scrape multiple years/ranges"
+      puts "  pb extract                  # Run all extractors"
+      puts "  pb extract major_transfers_by_provinces_and_territories  # Run specific extractor"
     end
   end
 end
