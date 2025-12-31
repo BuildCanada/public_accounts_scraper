@@ -20,6 +20,19 @@ The `YEARS` parameter supports multiple formats:
 
 All downloaded data is saved to `./raw/YEAR/` directories.
 
+### Extract data to structured formats
+```bash
+./bin/pb extract [EXTRACTOR_NAME]
+```
+
+The `extract` command processes downloaded HTML files and exports structured data:
+- **Run all extractors**: `./bin/pb extract`
+- **Run specific extractor**: `./bin/pb extract major_transfers_by_provinces_and_territories`
+
+Extracted data is saved to:
+- `./extracted/data/` - JSON files with structured data
+- `./extracted/metadata/` - YAML metadata files conforming to Datasette specification
+
 ### Legacy shell scripts
 
 The original shell scripts are still available:
@@ -36,10 +49,18 @@ lib/
   pb_cli.rb                         # CLI entry point
   pb_cli/commands/
     scrape.rb                       # Scrape command implementation
+    extract.rb                      # Extract command implementation
+  pb_cli/extractors/
+    base.rb                         # Base extractor class
+    major_transfers_by_provinces_and_territories.rb  # Major transfers extractor
 test/
   test_helper.rb                    # Test configuration
   commands/
     test_scrape.rb                  # Scrape command tests
+    test_extract.rb                 # Extract command tests
+extracted/
+  data/                             # Extracted JSON data files
+  metadata/                         # Datasette YAML metadata files
 Gemfile                             # Ruby dependencies
 Rakefile                            # Test tasks
 ```
@@ -56,6 +77,41 @@ bundle exec rake test
 1. Create a new file in `lib/pb_cli/commands/`
 2. Add the command to the case statement in `lib/pb_cli.rb`
 3. Add tests in `test/commands/`
+
+### Adding new extractors
+
+1. Create a new extractor class in `lib/pb_cli/extractors/` that inherits from `Base`
+2. Implement the `extract` and `extractor_name` methods
+3. Register the extractor in `lib/pb_cli/commands/extract.rb` EXTRACTORS hash
+4. Add tests in `test/commands/test_extract.rb`
+
+### Datasette Metadata Format
+
+All extractors must generate YAML metadata conforming to the Datasette specification. The metadata structure should follow this format:
+
+```yaml
+databases:
+  federal_transfers:              # Database name (use 'federal_transfers' for all transfer-related data)
+    tables:
+      [extractor_name]:            # Table name (should match extractor_name method)
+        title: Human Readable Title
+        description_html: |
+          Multi-line description of the data.
+          Include source information and units.
+        source: Public Accounts of Canada
+        source_url: https://www.tpsgc-pwgsc.gc.ca/recgen/cpc-pac/index-eng.html
+        license: Open Government License - Canada
+        license_url: https://open.canada.ca/en/open-government-licence-canada
+        columns:
+          column_name: Column description (units if applicable)
+          another_column: Another column description
+```
+
+**Key conventions:**
+- Database name: Use `federal_transfers` for all transfer-related extractions
+- Table name: Should match the extractor's `extractor_name` method
+- Column descriptions: Include units (e.g., "millions of dollars") where applicable
+- Use `description_html` (not `description`) to preserve formatting
 
 ### Commit message conventions
 
