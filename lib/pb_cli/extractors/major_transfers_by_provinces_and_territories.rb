@@ -68,11 +68,22 @@ module PbCli
           year_cell = row.at_css('th:not([rowspan])')
           next unless year_cell
 
-          fiscal_year = year_cell.text.strip.to_i
+          # Parse fiscal year - handle both formats:
+          # - Old format (2017 and earlier): "2016-2017" or "2016‑2017" (en-dash or non-breaking hyphen)
+          # - New format (2018+): "2017"
+          # Fiscal year convention: FY 2017 = the period 2016-2017
+          year_text = year_cell.text.strip.gsub(/[\u2011\u2013]/, '-')  # Normalize dashes
+          fiscal_year = if year_text.include?('-')
+                          # Old format: take the second year from "2016-2017"
+                          year_text.split('-').last.to_i
+                        else
+                          # New format: take the year directly
+                          year_text.to_i
+                        end
           next if fiscal_year == 0
 
-          # Extract all numeric data cells
-          data_cells = row.css('td.num')
+          # Extract ALL data cells (not just .num) to handle empty cells correctly
+          data_cells = row.css('td')
 
           # Build record
           record = {
@@ -103,11 +114,27 @@ module PbCli
         header_row = table.at_css('thead tr')
         return headers unless header_row
 
-        # Get all th elements except the first two (Province and Fiscal year)
+        # Get all th elements
         header_cells = header_row.css('th')
 
-        # Skip first two columns (Province/Territory and Fiscal year)
-        header_cells.drop(2).each do |th|
+        # Determine how many header columns to skip
+        # Check if first th has colspan (older format) or if there's an empty td (newer format)
+        first_th = header_cells.first
+        has_empty_td = header_row.at_css('td.empty_col')
+
+        # In older format (2013-2019), first th has colspan="2" covering Province and Fiscal year
+        # In newer format (2020+), there's an empty td, then th for Fiscal year
+        # In both cases, we want to skip the Province/Territory and Fiscal year columns
+        skip_count = if first_th && first_th['colspan'] == '2'
+                       1  # Skip only the first th (which covers both Province and Fiscal year)
+                     elsif has_empty_td
+                       1  # Skip the first th (Fiscal year)
+                     else
+                       2  # Default: skip first two th elements
+                     end
+
+        # Process remaining header cells
+        header_cells.drop(skip_count).each do |th|
           # Get text content, removing footnote links
           header_text = th.text.strip
 

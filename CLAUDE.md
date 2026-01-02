@@ -156,3 +156,23 @@ The download script handles three different URL structures based on the year:
 ### Cookie Handling
 
 A temporary `cookies.txt` file is created at the start of each download to bypass disclaimer pages on government sites. This is automatically cleaned up after the download completes.
+
+### Fiscal Year Format and Parsing
+
+**Important:** Canada's fiscal year runs from April 1 to March 31. The fiscal year naming convention is:
+- **Fiscal Year 2017** = the period from April 1, 2016 to March 31, 2017
+- **Fiscal Year 2020** = the period from April 1, 2019 to March 31, 2020
+
+Public Accounts documents use different formats for fiscal years depending on the publication year:
+
+**Format changes by year:**
+- **2017 and earlier**: Uses hyphenated format "2016-2017" or "2016‑2017" (with en-dash or non-breaking hyphen)
+- **2018 onwards**: Uses single year format "2017"
+
+**Parsing convention:**
+When extracting fiscal year data, always use the **ending year** of the fiscal period:
+- "2016-2017" → Fiscal Year **2017**
+- "2019-2020" → Fiscal Year **2020**
+- "2017" → Fiscal Year **2017**
+
+Extractors must normalize different dash characters (hyphen, en-dash, non-breaking hyphen) and consistently extract the ending year to ensure fiscal year values are correct across all data sources.
