@@ -4,3 +4,10 @@ raw_pdfs/
 public_accounts*/
 !public_accounts/
 .DS_Store
+
+# Generated data
+extracted/
+statscan/
+
+# Database files
+public_accounts.db
