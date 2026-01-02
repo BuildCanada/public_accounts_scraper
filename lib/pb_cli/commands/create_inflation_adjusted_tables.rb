@@ -355,8 +355,8 @@ module PbCli
           all_columns << col_name
         end
 
-        # Build SELECT for each column
-        select_parts = all_columns.map do |col|
+        # Build SELECT for each column, excluding source_year
+        select_parts = all_columns.reject { |col| col == 'source_year' }.map do |col|
           if monetary_columns.include?(col)
             # Multiply monetary columns by inflation index
             # Handle NULL values gracefully
@@ -367,7 +367,10 @@ module PbCli
           end
         end
 
-        # Generate VIEW SQL
+        # Generate VIEW SQL with filter for most recent source_year per fiscal year
+        # For each fiscal year, only include data from the most recent source_year
+        # that contains that year (e.g., if FY 2023 appears in both 2023 and 2024
+        # Public Accounts, only use the 2024 version with updated numbers)
         <<~SQL
           CREATE VIEW #{table_name}_inflation_adjusted AS
           SELECT
@@ -375,6 +378,11 @@ module PbCli
           FROM #{table_name} AS base
           LEFT JOIN #{CPI_TABLE_NAME} AS cpi
             ON base.year = cpi.fiscal_year
+          WHERE (base.year, base.source_year) IN (
+            SELECT year, MAX(source_year)
+            FROM #{table_name}
+            GROUP BY year
+          )
         SQL
       end
 
