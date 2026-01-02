@@ -371,6 +371,7 @@ module PbCli
         # For each fiscal year, only include data from the most recent source_year
         # that contains that year (e.g., if FY 2023 appears in both 2023 and 2024
         # Public Accounts, only use the 2024 version with updated numbers)
+        # Exception: FY 2018 uses source_year 2018 (not 2019) due to data quality
         <<~SQL
           CREATE VIEW #{table_name}_inflation_adjusted AS
           SELECT
@@ -379,7 +380,12 @@ module PbCli
           LEFT JOIN #{CPI_TABLE_NAME} AS cpi
             ON base.year = cpi.fiscal_year
           WHERE (base.year, base.source_year) IN (
-            SELECT year, MAX(source_year)
+            SELECT
+              year,
+              CASE
+                WHEN year = 2018 THEN 2018
+                ELSE MAX(source_year)
+              END as source_year
             FROM #{table_name}
             GROUP BY year
           )
