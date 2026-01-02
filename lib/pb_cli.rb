@@ -19,6 +19,12 @@ module PbCli
       when 'extract'
         require_relative 'pb_cli/commands/extract'
         Commands::Extract.new.call(command_args)
+      when 'create-db'
+        require_relative 'pb_cli/commands/create_db'
+        Commands::CreateDb.new.call(command_args)
+      when 'statscan'
+        require_relative 'pb_cli/commands/statscan'
+        Commands::Statscan.run(command_args)
       else
         puts "Unknown command: #{command}"
         puts ""
@@ -33,6 +39,8 @@ module PbCli
       puts "Usage:"
       puts "  pb scrape YEARS"
       puts "  pb extract [EXTRACTOR_NAME]"
+      puts "  pb create-db"
+      puts "  pb statscan download <dataset_name>"
       puts ""
       puts "Examples:"
       puts "  pb scrape 2025              # Scrape single year"
@@ -40,6 +48,8 @@ module PbCli
       puts "  pb scrape 2015,2017,2019-2025  # Scrape multiple years/ranges"
       puts "  pb extract                  # Run all extractors"
       puts "  pb extract major_transfers_by_provinces_and_territories  # Run specific extractor"
+      puts "  pb create-db                # Create SQLite database from extracted JSON"
+      puts "  pb statscan download cpi_monthly  # Download Statistics Canada CPI data"
     end
   end
 end
