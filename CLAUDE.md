@@ -33,6 +33,54 @@ Extracted data is saved to:
 - `./extracted/data/` - JSON files with structured data
 - `./extracted/metadata/` - YAML metadata files conforming to Datasette specification
 
+### Download Statistics Canada data
+```bash
+./bin/pb statscan download <dataset_name>
+```
+
+Downloads datasets from Statistics Canada. Use the `.claude/commands/add-statscan-dataset.md` command to add new datasets.
+
+### Create SQLite database
+```bash
+./bin/pb create-db [OPTIONS]
+```
+
+Creates a SQLite database from extracted JSON data files. The command:
+- Creates `public_accounts.db` in the current directory
+- Automatically imports all JSON files from `./extracted/data/`
+- Uses table names based on JSON filenames
+- Detects column types automatically
+- Deletes any existing database before creating a new one
+- Optimizes database settings during loading for maximum performance
+
+**Database Optimization:**
+By default, the command automatically:
+1. Sets write-optimized SQLite parameters before loading data (journal_mode=OFF, synchronous=OFF, 64MB cache)
+2. Loads all JSON data into the database
+3. Sets read-optimized SQLite parameters after loading (journal_mode=WAL, synchronous=NORMAL, 2MB cache)
+4. Runs PRAGMA optimize to analyze the database for query optimization
+
+**Options:**
+- `--skip-optimization`: Skip both write and read optimizations (not recommended)
+- `--keep-write-mode`: Keep write-optimized settings after loading (useful when more data will be loaded)
+
+**Prerequisites**: Requires `sqlite-utils` to be installed (`pip install sqlite-utils` or `brew install sqlite-utils`)
+
+### Initialize database
+```bash
+./bin/pb initialize
+```
+
+Runs the complete workflow to create and populate the database:
+1. Extracts data from downloaded HTML files (`pb extract`)
+2. Creates database and loads extracted JSON data (`pb create-db --keep-write-mode`)
+3. Loads Statistics Canada datasets (`pb statscan load`)
+4. Optimizes database for read-heavy workloads
+
+This command is optimized for bulk loading: it keeps the database in write-optimized mode while loading all data, then switches to read-optimized mode at the end for better query performance.
+
+**Prerequisites**: Requires data to be downloaded first using `pb scrape` and `pb statscan download`
+
 ### Legacy shell scripts
 
 The original shell scripts are still available:
@@ -44,12 +92,17 @@ The original shell scripts are still available:
 ## Project Structure
 
 ```
+.claude/commands/
+  add-statscan-dataset.md           # Command for adding new Statistics Canada datasets
 bin/pb                              # CLI executable
 lib/
   pb_cli.rb                         # CLI entry point
   pb_cli/commands/
     scrape.rb                       # Scrape command implementation
     extract.rb                      # Extract command implementation
+    create_db.rb                    # Database creation command
+    initialize.rb                   # Initialize database workflow command
+    statscan.rb                     # Statistics Canada download command
   pb_cli/extractors/
     base.rb                         # Base extractor class
     major_transfers_by_provinces_and_territories.rb  # Major transfers extractor
@@ -58,6 +111,8 @@ test/
   commands/
     test_scrape.rb                  # Scrape command tests
     test_extract.rb                 # Extract command tests
+    test_create_db.rb               # Database creation command tests
+    test_statscan.rb                # Statistics Canada command tests
 extracted/
   data/                             # Extracted JSON data files
   metadata/                         # Datasette YAML metadata files
@@ -91,7 +146,7 @@ All extractors must generate YAML metadata conforming to the Datasette specifica
 
 ```yaml
 databases:
-  federal_transfers:              # Database name (use 'federal_transfers' for all transfer-related data)
+  public_accounts:              # Database name (use 'public_accounts' for all transfer-related data)
     tables:
       [extractor_name]:            # Table name (should match extractor_name method)
         title: Human Readable Title
@@ -108,7 +163,7 @@ databases:
 ```
 
 **Key conventions:**
-- Database name: Use `federal_transfers` for all transfer-related extractions
+- Database name: Use `public_accounts` for all transfer-related extractions
 - Table name: Should match the extractor's `extractor_name` method
 - Column descriptions: Include units (e.g., "millions of dollars") where applicable
 - Use `description_html` (not `description`) to preserve formatting
