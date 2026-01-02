@@ -25,6 +25,9 @@ module PbCli
       when 'statscan'
         require_relative 'pb_cli/commands/statscan'
         Commands::Statscan.run(command_args)
+      when 'initialize'
+        require_relative 'pb_cli/commands/initialize'
+        Commands::Initialize.new.call(command_args)
       else
         puts "Unknown command: #{command}"
         puts ""
@@ -41,6 +44,7 @@ module PbCli
       puts "  pb extract [EXTRACTOR_NAME]"
       puts "  pb create-db"
       puts "  pb statscan download <dataset_name>"
+      puts "  pb initialize"
       puts ""
       puts "Examples:"
       puts "  pb scrape 2025              # Scrape single year"
@@ -50,6 +54,7 @@ module PbCli
       puts "  pb extract major_transfers_by_provinces_and_territories  # Run specific extractor"
       puts "  pb create-db                # Create SQLite database from extracted JSON"
       puts "  pb statscan download cpi_monthly  # Download Statistics Canada CPI data"
+      puts "  pb initialize               # Run extract, create-db, and statscan load"
     end
   end
 end

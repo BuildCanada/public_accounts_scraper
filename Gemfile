@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 gem 'cli-kit', '~> 5.2'
 gem 'cli-ui', '~> 2.0'
 gem 'nokogiri', '~> 1.16'
+gem 'rubyzip', '~> 2.3'
 
 group :test do
   gem 'minitest', '~> 5.0'
