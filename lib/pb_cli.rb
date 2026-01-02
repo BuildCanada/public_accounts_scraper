@@ -28,6 +28,9 @@ module PbCli
       when 'initialize'
         require_relative 'pb_cli/commands/initialize'
         Commands::Initialize.new.call(command_args)
+      when 'create-inflation-adjusted-tables'
+        require_relative 'pb_cli/commands/create_inflation_adjusted_tables'
+        Commands::CreateInflationAdjustedTables.new.call(command_args)
       else
         puts "Unknown command: #{command}"
         puts ""
@@ -45,6 +48,7 @@ module PbCli
       puts "  pb create-db"
       puts "  pb statscan download <dataset_name>"
       puts "  pb initialize"
+      puts "  pb create-inflation-adjusted-tables"
       puts ""
       puts "Examples:"
       puts "  pb scrape 2025              # Scrape single year"
@@ -55,6 +59,7 @@ module PbCli
       puts "  pb create-db                # Create SQLite database from extracted JSON"
       puts "  pb statscan download cpi_monthly  # Download Statistics Canada CPI data"
       puts "  pb initialize               # Run extract, create-db, and statscan load"
+      puts "  pb create-inflation-adjusted-tables  # Create CPI-adjusted views"
     end
   end
 end

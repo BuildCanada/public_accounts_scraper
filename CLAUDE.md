@@ -81,6 +81,48 @@ This command is optimized for bulk loading: it keeps the database in write-optim
 
 **Prerequisites**: Requires data to be downloaded first using `pb scrape` and `pb statscan download`
 
+### Create inflation-adjusted tables
+```bash
+./bin/pb create-inflation-adjusted-tables
+```
+
+Creates CPI-adjusted views for monetary data using Statistics Canada CPI data. The command:
+- Creates a `cpi_inflation_indexes` reference table with fiscal year averages
+- Calculates inflation indexes for converting historical dollars to recent dollars
+- Creates `_inflation_adjusted` views for each non-statscan table
+- Automatically detects the latest fiscal year with complete CPI data (≥11 months)
+- Adjusts all monetary columns (FLOAT type) while preserving metadata columns
+
+The `cpi_inflation_indexes` table contains:
+- One row per fiscal year with `avg_cpi` and `months_count` columns
+- Index columns for each year (e.g., `index_2025`, `index_2024`, ..., `index_2017`)
+- Each index shows the multiplier to convert that row's fiscal year dollars to the target year
+
+For example, if fiscal year 2017 has `index_2023 = 1.215`, multiply 2017 dollar amounts by 1.215 to get 2023 dollars.
+
+**Prerequisites**: Requires CPI data to be loaded (`pb statscan download cpi_monthly` and `pb statscan load cpi_monthly`)
+
+**Fiscal Year Convention**: FY 2017 = April 2016 through March 2017
+
+**Example Usage:**
+```bash
+# Query inflation-adjusted data
+sqlite3 public_accounts.db "
+  SELECT year, province_territory, old_age_security_benefits
+  FROM major_transfers_by_provinces_and_territories_inflation_adjusted
+  WHERE province_territory = 'Ontario'
+  ORDER BY year;
+"
+
+# Join with CPI reference table for custom analysis
+sqlite3 public_accounts.db "
+  SELECT fiscal_year, avg_cpi, months_count, index_2025
+  FROM cpi_inflation_indexes
+  WHERE fiscal_year >= 2017
+  ORDER BY fiscal_year;
+"
+```
+
 ### Legacy shell scripts
 
 The original shell scripts are still available:
