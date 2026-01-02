@@ -11,7 +11,23 @@
       "Bash(pip3 install:*)",
       "Bash(source venv/bin/activate)",
       "Bash(pip install:*)",
-      "Bash(/Volumes/floppy/public_accounts/compare_files_across_years.sh:*)"
+      "Bash(/Volumes/floppy/public_accounts/compare_files_across_years.sh:*)",
+      "Bash(bundle install:*)",
+      "Bash(./bin/pb scrape:*)",
+      "Bash(ruby -r./lib/pb_cli/commands/scrape.rb -e:*)",
+      "Bash(ruby -Ilib:test test/commands/test_scrape.rb:*)",
+      "Bash(bundle exec rake test:*)",
+      "Bash(git add:*)",
+      "WebFetch(domain:docs.datasette.io)",
+      "Bash(./bin/pb extract:*)",
+      "Bash(cat:*)",
+      "Bash(./bin/pb:*)",
+      "Bash(git commit:*)",
+      "WebFetch(domain:sqlite-utils.datasette.io)",
+      "Bash(curl:*)",
+      "Bash(ruby -rjson -e:*)",
+      "Bash(sqlite-utils tables:*)",
+      "Bash(sqlite-utils schema:*)"
     ]
   }
 }
