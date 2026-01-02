@@ -49,6 +49,7 @@ module PbCli
 
         records = []
         current_province = nil
+        province_position = 0
 
         # Get column headers
         headers = extract_headers(table)
@@ -59,6 +60,7 @@ module PbCli
           province_cell = row.at_css('th[rowspan]')
           if province_cell
             current_province = province_cell.text.strip
+            province_position += 1
           end
 
           # Skip if we don't have a province
@@ -89,7 +91,9 @@ module PbCli
           record = {
             source_year: source_year,
             year: fiscal_year,
-            province_territory: current_province
+            province_territory: current_province,
+            position: province_position,
+            is_total_or_subtotal: is_total_or_subtotal?(current_province)
           }
 
           # Add all column values
@@ -105,6 +109,20 @@ module PbCli
         end
 
         records
+      end
+
+      def is_total_or_subtotal?(province_territory)
+        # Check if the province_territory name indicates a total or subtotal row
+        name_lower = province_territory.downcase.strip
+
+        # Patterns that indicate totals or subtotals
+        total_patterns = [
+          /^total/,
+          /^subtotal/,
+          /^add:/
+        ]
+
+        total_patterns.any? { |pattern| name_lower.match?(pattern) }
       end
 
       def extract_headers(table)
@@ -159,11 +177,13 @@ module PbCli
         columns_metadata = {
           'source_year' => 'Year of the Public Accounts document',
           'year' => 'Fiscal year of the data',
-          'province_territory' => 'Province or territory name'
+          'province_territory' => 'Province or territory name',
+          'position' => 'Position of the province/territory in the original table',
+          'is_total_or_subtotal' => 'Whether this row represents a total, subtotal, or adjustment (true/false)'
         }
 
         # Add descriptions for transfer columns
-        transfer_columns = all_columns - [:source_year, :year, :province_territory]
+        transfer_columns = all_columns - [:source_year, :year, :province_territory, :position, :is_total_or_subtotal]
         transfer_columns.each do |col|
           readable_name = col.to_s.split('_').map(&:capitalize).join(' ')
           columns_metadata[col.to_s] = "#{readable_name} (millions of dollars)"
@@ -171,7 +191,7 @@ module PbCli
 
         {
           'databases' => {
-            'federal_transfers' => {
+            'public_accounts' => {
               'tables' => {
                 extractor_name => {
                   'title' => 'Major Transfer Payments by Province and Territory',
