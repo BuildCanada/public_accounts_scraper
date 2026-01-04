@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem 'cli-kit', '~> 5.2'
 gem 'cli-ui', '~> 2.0'
+gem 'csv', '~> 3.0'
 gem 'nokogiri', '~> 1.16'
 gem 'rubyzip', '~> 2.3'
 

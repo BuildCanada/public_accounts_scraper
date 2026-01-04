@@ -31,6 +31,9 @@ module PbCli
       when 'create-inflation-adjusted-tables'
         require_relative 'pb_cli/commands/create_inflation_adjusted_tables'
         Commands::CreateInflationAdjustedTables.new.call(command_args)
+      when 'create-metadata'
+        require_relative 'pb_cli/commands/create_metadata'
+        Commands::CreateMetadata.execute(command_args)
       else
         puts "Unknown command: #{command}"
         puts ""
@@ -49,6 +52,7 @@ module PbCli
       puts "  pb statscan download <dataset_name>"
       puts "  pb initialize"
       puts "  pb create-inflation-adjusted-tables"
+      puts "  pb create-metadata"
       puts ""
       puts "Examples:"
       puts "  pb scrape 2025              # Scrape single year"
@@ -60,6 +64,7 @@ module PbCli
       puts "  pb statscan download cpi_monthly  # Download Statistics Canada CPI data"
       puts "  pb initialize               # Run extract, create-db, and statscan load"
       puts "  pb create-inflation-adjusted-tables  # Create CPI-adjusted views"
+      puts "  pb create-metadata          # Create consolidated metadata.yaml"
     end
   end
 end
