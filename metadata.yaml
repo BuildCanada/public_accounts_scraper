@@ -1,0 +1,299 @@
+---
+title: Canada Spends
+description: Canada Spends is making government spending data transparent.
+license: ODC-By
+license_url: https://opendatacommons.org/licenses/by/
+source: Government of Canada Public Accounts
+source_url: https://www.canada.ca/en/public-services-procurement/services/payments-accounting/public-accounts.html
+databases:
+  public_accounts:
+    tables:
+      major_transfers_by_provinces_and_territories:
+        title: Major Transfer Payments by Province and Territory
+        description_html: |
+          Major transfer payments to provinces and territories from the
+          Public Accounts of Canada (Table 3.7). Data extracted from
+          Volume 1, Section 3 (charges-expenses-eng.html) for fiscal years 2013 onwards.
+          Values are in millions of dollars.
+        source: Public Accounts of Canada
+        source_url: https://www.tpsgc-pwgsc.gc.ca/recgen/cpc-pac/index-eng.html
+        license: Open Government License - Canada
+        license_url: https://open.canada.ca/en/open-government-licence-canada
+        columns:
+          source_year: Year of the Public Accounts document
+          year: Fiscal year of the data
+          province_territory: Province or territory name
+          position: Position of the province/territory in the original table
+          is_total_or_subtotal: Whether this row represents a total, subtotal, or
+            adjustment (true/false)
+          old_age_security_benefits: Old Age Security Benefits (millions of dollars)
+          employment_insurance_benefits: Employment Insurance Benefits (millions of
+            dollars)
+          fiscal_arrangements: Fiscal Arrangements (millions of dollars)
+          quebec_abatement: Quebec Abatement (millions of dollars)
+          canada_health_transfer: Canada Health Transfer (millions of dollars)
+          canada_social_transfer: Canada Social Transfer (millions of dollars)
+          other_major_transfers: Other Major Transfers (millions of dollars)
+          childrens_benefits: Childrens Benefits (millions of dollars)
+          total: Total (millions of dollars)
+          employment_insurance: Employment Insurance (millions of dollars)
+          old_age_security_benefitslink_to_table_note: Old Age Security Benefitslink
+            To Table Note (millions of dollars)
+          quebec_abatementlink_to_table_note: Quebec Abatementlink To Table Note (millions
+            of dollars)
+          other_major_transferslink_to_table_note: Other Major Transferslink To Table
+            Note (millions of dollars)
+          canada_emergency_response_benefit: Canada Emergency Response Benefit (millions
+            of dollars)
+          employment_insurance_and_support_measures: Employment Insurance And Support
+            Measures (millions of dollars)
+          covid19_support_measures: Covid19 Support Measures (millions of dollars)
+          covid19_income_support_for_workers: Covid19 Income Support For Workers (millions
+            of dollars)
+          canada_emergency_wage_subsidy: Canada Emergency Wage Subsidy (millions of
+            dollars)
+          canadawide_early_learning_and_child_care: Canadawide Early Learning And
+            Child Care (millions of dollars)
+      statscan_cpi_monthly:
+        title: Consumer Price Index, monthly, not seasonally adjusted
+        description_html: |-
+          Consumer Price Index, monthly, not seasonally adjusted
+
+          Frequency: Monthly
+          Coverage: 1914-01-01 to 2025-11-01
+
+          Dimensions: Geography, Products and product groups
+
+          Notes:
+          - The Consumer Price Index (CPI) is not a cost-of-living index. The objective behind a cost-of-living index is to measure changes in expenditures necessary for consumers to maintain a constant standard of living. The idea is that consumers would normally switch between products as the price relationship of goods changes. If, for example, consumers get the same satisfaction from drinking tea as they do from coffee, then it is possible to substitute tea for coffee if the price of tea falls relative to the price of coffee. The cheaper of the interchangeable products may be chosen. We could compute a cost-of-living index for an individual if we had complete information about that person's taste and spending habits. To do this for a large number of people, let alone the total population of Canada, is impossible. For this reason, regularly published price indexes are based on the fixed-basket concept rather than the cost-of-living concept.
+          - This table replaces table 18-10-0008-01 which was archived with the release of April 2007 data.
+          - With the introduction of the 1992 basket in January 1995, emphasis was shifted from city data to provincial data. City all-items series were continued since many users had come to rely on this service, but the method of calculation was changed. Shelter indexes are calculated for each city. This recognizes the importance of shelter in the basket, the significant and persistent differences in price movements between cities, and the availability of local data. For the other seven major components, the movement of the provincial counterpart is used except in the cases of Montréal, Toronto, and Vancouver, where a sub-provincial counterpart is used. The major components are aggregated using the city's expenditure pattern to arrive at each city's all-items index.
+          - Formerly Ottawa (Ottawa-Gatineau, Ontario part), represents Ottawa only.
+          - The relatively small size of the housing market in these two cities makes it difficult to construct reliable price indexes for new houses. To compensate, the price movements of rental accommodation are used to approximate the price movements of new houses. The rent information itself is collected using different pricing frequencies and collection methods than in the rest of the country. Because of these problems, the indexes for rented accommodation, and owned accommodation are not published for these two cities. Further, the all-items indexes published for these two cities are not strictly comparable with the same indexes for the provinces or the other 16 cities.
+          - Data for Iqaluit are on a December 2002=100 base (200212=100) and the Standard Geographical Classification (SGC) 2001. Previous to April 1, 1999, the town of Iqaluit formed part of the Northwest Territories. On April 1, 1999, the town of Iqaluit formed part of the newly-created territory of Nunavut.
+          - The goods and services that make up the Consumer Price Index (CPI) are organized according to a hierarchical structure with the all-items CPI as the top level. Eight major components of goods and services make up the all-items CPI. They are food; shelter; household operations, furnishings and equipment; clothing and footwear; transportation; health and personal care; recreation, education and reading; and alcoholic beverages, tobacco products and recreational cannabis. These eight components are broken down into a varying number of sub-groups which are in turn broken down into other sub-groups. Indents are used to identify the components that make up each level of aggregation. For example, the eight major components appear with one indent relative to the all-items CPI to show that they are combined to obtain the all-items CPI. NOTE: Some items are recombined outside the main structure of the CPI to obtain special aggregates such as all-items excluding food and energy; energy; goods; services; or fresh fruit and vegetables. They are listed after the components of the main structure of the CPI following the last major component entitled alcoholic beverages, tobacco products and recreational cannabis.
+          - Food includes non-alcoholic beverages.
+          - Part of the increase first recorded in the shelter index for Yellowknife for December 2004 inadvertently reflected rent increases that actually occurred earlier. As a result, the change in the shelter index was overstated in December 2004, and was understated in the previous two years. The shelter index series for Yellowknife has been corrected from December 2002. In addition, the Yellowknife all-items Consumer Price Index (CPI) and some Yellowknife special aggregate index series have also changed. Data for Canada and all other provinces and territories were not affected.
+          - About two thirds (4.7%) of the 7.4% decrease registered between September and October 2004 in the digital computing equipment and devices index series represents a revision to source data.
+          - In April 2006, Statistics Canada changed its implementation of the price index formula used for traveler accommodation. As a result, data from April 2006 are not strictly comparable to earlier time periods.
+          - The special aggregate energy includes electricity; natural gas; fuel oil and other fuels; gasoline; and fuel, parts and accessories for recreational vehicles.
+          - The 1986 basket content was divided into seven major components. With the introduction of the 1992 basket, the housing component from the 1986 basket definition was split into two components: shelter and household operations, furnishings and equipment. This brought the number of major components to a total of eight. Also, the definition of shelter was changed. The traveler accommodation category, which was part of the 1986 definition of shelter, was moved to recreation with the introduction of the 1992 basket. To provide some continuity certain aggregates were reconstructed using their 1986 basket definitions.
+          - Goods are physical or tangible commodities usually classified according to their life span into non-durable goods, semi-durable goods and durable goods. Non-durable goods are those goods that can be used up entirely in less than a year, assuming normal usage. For example, fresh food products, disposable cameras and gasoline are non-durable goods. Semi-durable goods are those goods that may last less than 12 months or greater than 12 months depending on the purpose to which they are put. For example, clothing, footwear and household textiles are semi-durable goods. Durable goods are those goods which may be used repeatedly or continuously over more than a year, assuming normal usage. For example, cars, audio and video equipment and furniture are durable goods.
+          - A service in the Consumer Price Index (CPI) is characterized by valuable work performed by an individual or organization on behalf of a consumer, for example, car tune-ups, haircuts and city public transportation. Transactions classified as a service may include the cost of goods by their nature. Examples include food in restaurant food services and materials in clothing repair services.
+          - "Revision of the methodology of the home insurance (opens new window) component of the Consumer Price Index (CPI) beginning with the February 2008 CPI."
+          - "Revision of the methodology of the Internet access services (opens new window) component of the Consumer Price Index (CPI) beginning with the March 2008 CPI. Changes to the Internet Access Services (opens new window) Index of the Consumer Price Index (CPI) beginning with the November 2015 CPI."
+          - In previous years, Statistics Canada updated, by province, the model year of passenger vehicles used in the calculation of the passenger vehicle insurance premiums index over a three month period. Since 2008, this quality adjustment exercise is reflected in the month of May for all provinces.
+          - "Revision of the methodology of the rent(opens new window) component of the Consumer Price Index (CPI)
+          - "Revision of the methodology of the prescribed medicines (opens new window) index of the Consumer Price Index (CPI)
+          - "The timing for the introduction of new model year vehicles into the purchase of passenger vehicles (opens new window) index of the Consumer Price Index (CPI) has changed in 2012."
+          - "From April 2020 to November 2021, and from January 2022 to February 2022, certain sub-indexes and components thereof were imputed using special approaches in either one, or more months. The affected indexes include child care services; housekeeping services; air transportation; personal care services; recreational services; travel tours; spectator entertainment; use of recreational facilities and services; beer served in licensed establishments; wine served in licensed establishments, and liquor served in licensed establishments. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series (opens new window). Starting in April 2021
+          - "Price movements for this sub-index were imputed using special approaches in either one, or more months. The details of these treatments for April 2020 are provided in a technical supplement available through the Prices Analytical Series (opens new window)."
+          - "Price movements for this sub-index were imputed using special approaches in either one, or more months. The details of these treatments for April 2020 are provided in a technical supplement available through the Prices Analytical Series (opens new window)."
+          - "From April 2020 to July 2021, price movements for this sub-index were imputed using special approaches. In August 2021, adjustments were introduced to remove the impact of all imputations performed. Users are advised to exercise caution in interpreting the 1-month change for August 2021 and the 12-month change for the next 12 months for the air transportation index. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series (opens new window). Starting in April 2021
+          - "Price movements for this sub-index were imputed using special approaches in either one, or more months. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series (opens new window). From April 2021 to June 2021
+          - "Price movements for this sub-index were imputed using special approaches in either one, or more months. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series (opens new window). From April 2021 to July 2021
+          - "Price movements for this sub-index were imputed using special approaches in either one, or more months. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series (opens new window). From April 2021 to July 2021
+          - "Price movements for this sub-index were imputed using special approaches in either one, or more months. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series (opens new window). From April 2021 to June 2021
+          - "Price movements for this sub-index were imputed using special approaches in either one, or more months. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series (opens new window). From April 2021 to June 2021
+          - "Price movements for this sub-index were imputed using special approaches in either one, or more months. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series(opens new window). From April 2021 to June 2021
+          - "Price movements for this sub-index were imputed using special approaches in either one, or more months. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series (opens new window). From April 2021 to July 2021
+          - "From April 2020 to July 2021, price movements for this sub-index were imputed using special approaches. In August 2021, adjustments were introduced on a major component of this sub-index to remove the impact of these imputations. In November 2021, an adjustment was introduced on the remaining imputed component to remove the impact of the imputations on that component. Users are advised to exercise caution in interpreting the 1-month change for August 2021 and November 2021, and the 12-month change for the next 12 months for the travel tours index. The details of these treatments from April 2020 to March 2021 are provided in technical supplements available through the Prices Analytical Series (opens new window). Starting in April 2021
+          - "Available starting April 2022. In order to have historical data prior to April 2022, users can use the purchase of passenger vehicles index values as proxies. Please note that the purchase of passenger vehicles index values are based on 2002=100 while this series is 2022-04=100. Therefore, users should rebase the purchase of passenger vehicles index values that are based on 2002=100, to 2022-04=100 in order to make the series continuous. For more information on rebasing, you can consult section 8.25 of The Consumer Price Index Reference Paper (opens new window)."
+          - With the release of the Consumer Price Index (CPI) of May 2023,  the classification of the fresh fruit category has been updated to provide Canadians with more granular data. Previously included in the other fresh fruit category, citrus (excluding oranges), grapes and berries (including cherries) are now published. As a result, data for other fresh fruit beginning in May 2023 are no longer directly comparable to earlier time periods.
+          - With the release of the Consumer Price Index (CPI) of May 2023, the classification of the fresh vegetables category has been updated to provide Canadians with more granular data. Previously included in the other fresh vegetables category, carrots, onions, peppers, cucumber and mushrooms are now published. As a result, data for other fresh vegetables beginning in May 2023 are no longer directly comparable to earlier time periods.
+          - As access to more granular data has become available, the cellular services index is now published at the provincial level in addition to the national level. Changes over time in the cellular services index at the national level may be calculated using index data from any of the two base periods (2017=100 or 202304=100).
+          - With the release of the Consumer Price Index (CPI) of August 2024, the cellular services price index has been updated to incorporate transaction data from wireless service providers. This enhancement improves the quality of the data, while ensuring the representativeness of prices paid by Canadian consumers. Users should exercise caution when interpreting the year-over-year change for the first 12 months following the implementation of a new methodology and data source.
+          - With the release of the Consumer Price Index (CPI) of August 2024, the cellular services price index has been updated to incorporate transaction data from wireless service providers. This enhancement improves the quality of the data, while ensuring the representativeness of prices paid by Canadian consumers. Users should exercise caution when interpreting the year-over-year change for the first 12 months following the implementation of a new methodology and data source. Users are also advised to exercise caution when making provincial/territorial comparisons. The market shares of the sampled wireless service providers vary across provinces and territories and price changes derived from transaction data may differ from price changes derived from web-collected data as transaction data includes monthly charges for in-market and legacy plans, while web-collected data only contains monthly charges for advertised plans. The hybrid cellular services price index in each province or territory is affected by the market shares of the wireless service providers from which Statistics Canada is receiving transaction data.
+        source: Statistics Canada
+        source_url: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000401
+        license: Statistics Canada Open License
+        license_url: https://www.statcan.gc.ca/en/reference/licence
+        columns:
+          REF_DATE: Reference date for the data point
+          GEO: Geographic location
+          DGUID: Unique identifier for the geographic location
+          Geography: Geography
+          Products and product groups: Products and product groups
+          UOM: Unit of measure
+          UOM_ID: Unit of measure identifier
+          SCALAR_FACTOR: Scalar factor (e.g., thousands, millions)
+          SCALAR_ID: Scalar factor identifier
+          VECTOR: StatsCan vector identifier
+          COORDINATE: Coordinate value
+          VALUE: The measured value
+          STATUS: Status of the data point
+          SYMBOL: Symbol identifier for data quality or notes
+          TERMINATED: Whether this series has been terminated
+          DECIMALS: Number of decimal places
+      statscan_employment_rate:
+        title: Labour force characteristics, monthly, seasonally adjusted and trend-cycle
+        description_html: |-
+          Labour force characteristics, monthly, seasonally adjusted and trend-cycle
+
+          Frequency: Monthly
+          Coverage: 1976-01-01 to 2025-11-01
+
+          Dimensions: Geography, Labour force characteristics, Gender, Age group, Statistics, Data type
+
+          Notes:
+          - Fluctuations in economic time series are caused by seasonal, cyclical and irregular movements. A seasonally adjusted series is one from which seasonal movements have been eliminated. Seasonal movements are defined as those which are caused by regular annual events such as climate, holidays, vacation periods and cycles related to crops, production and retail sales associated with Christmas and Easter. It should be noted that the seasonally adjusted series contain irregular as well as longer-term cyclical fluctuations. The seasonal adjustment program is a complicated computer program which differentiates between these seasonal, cyclical and irregular movements in a series over a number of years and, on the basis of past movements, estimates appropriate seasonal factors for current data. On an annual basis, the historic series of seasonally adjusted data are revised in light of the most recent information on changes in seasonality.
+          - Number of persons of working age, 15 years and over. Estimates in thousands, rounded to the nearest hundred.
+          - Number of civilian, non-institutionalized persons 15 years of age and over who, during the reference week, were employed or unemployed. Estimates in thousands, rounded to the nearest hundred.
+          - Number of persons who, during the reference week, worked for pay or profit, or performed unpaid family work or had a job but were not at work due to own illness or disability, personal or family responsibilities, labour dispute, vacation, or other reason. Those persons on layoff and persons without work but who had a job to start at a definite date in the future are not considered employed. Estimates in thousands, rounded to the nearest hundred.
+          - Full-time employment consists of persons who usually work 30 hours or more per week at their main or only job. Estimates in thousands, rounded to the nearest hundred.
+          - Part-time employment consists of persons who usually work less than 30 hours per week at their main or only job. Estimates in thousands, rounded to the nearest hundred.
+          - Number of persons who, during the reference week, were without work, had looked for work in the past four weeks, and were available for work. Those persons on layoff or who had a new job to start in four weeks or less are considered unemployed. Estimates in thousands, rounded to the nearest hundred.
+          - The unemployment rate is the number of unemployed persons expressed as a percentage of the labour force. The unemployment rate for a particular group (age, gender, marital status, etc.) is the number unemployed in that group expressed as a percentage of the labour force for that group. Estimates are percentages, rounded to the nearest tenth.
+          - The participation rate is the number of labour force participants expressed as a percentage of the population 15 years of age and over. The participation rate for a particular group (age, gender, marital status, etc.) is the number of labour force participants in that group expressed as a percentage of the population for that group. Estimates are percentages, rounded to the nearest tenth.
+          - The employment rate is the number of persons employed expressed as a percentage of the population 15 years of age and over. The employment rate for a particular group (age, gender, marital status, etc.) is the number employed in that group expressed as a percentage of the population for that group. Estimates are percentages, rounded to the nearest tenth.
+          - To ensure respondent confidentiality, estimates below a certain threshold are suppressed. For Canada, Quebec, Ontario, Alberta and British Columbia suppression is applied to all data below 1,500. The threshold level for Newfoundland and Labrador, Nova Scotia, New Brunswick, Manitoba and Saskatchewan is 500, while in Prince Edward Island, estimates under 200 are suppressed. For census metropolitan areas (CMAs) and economic regions (ERs), use their respective provincial suppression levels mentioned above. Estimates are based on smaller sample sizes the more detailed the table becomes, which could result in lower data quality.
+          - "For more information on seasonal adjustment see Seasonally adjusted data - Frequently asked questions."
+          - From December 2000 to January 2001, there is a slight level shift in the population series. This is due to the 2015 population rebasing, which was revised back to 2001. This level shift is evident for certain age groups and in two provinces (Manitoba and Saskatchewan). These shifts are minor for labour force estimates and rates.
+          - "These data represent a smoothed version of the seasonally adjusted time series. They provide information on longer-term movements, including changes in direction underlying the series. For more information, see Trend-cycle estimates: Frequently asked questions."
+          - "The standard error (SE) of an estimate is an indicator of the variability associated with this estimate, as the estimate is based on a sample rather than the entire population. The SE can be used to construct confidence intervals and calculate coefficients of variation (CVs). The confidence interval can be built by adding the SE to an estimate in order to determine the upper limit of this interval, and by subtracting the same amount from the estimate to determine the lower limit. The CV can be calculated by dividing the SE by the estimate. See Section 7 of the Guide to the Labour Force Survey (opens new window) for more information. The standard errors presented in this table are the average of the standard errors for 12 previous months
+          - "The standard error (SE) for the month-to-month change is an indicator of the variability associated with the estimate of the change between two consecutive months, because each monthly estimate is based on a sample rather than the entire population. To construct confidence intervals, the SE is added to an estimate in order to determine the upper limit of this interval, and then subtracted from the estimate to determine the lower limit. Using this method, the true value will fall within one SE of the estimate approximately 68% of the time, and within two standard errors approximately 95% of the time. For example, if the estimated employment level increases by 20,000 from one month to another and the associated SE is 29,000, the true value of the employment change has a 68% chance of falling between -9,000 and +49,000. Because such a confidence interval includes zero, the 20,000 change would not be considered statistically significant. However, if the increase is 30,000, the confidence interval would be +1,000 to +59,000, and the 30,000 increase would be considered statistically significant. (Note that 30,000 is above the SE of 29,000, and that the confidence interval does not include zero.) Similarly, if the estimated employment declines by 30,000, then the true value of the decline would fall between -59,000 and -1,000. See Section 7 of the Guide to the Labour Force Survey (opens new window) for more information. The standard errors presented in this table are the average of standard errors for 12 previous months. They are updated twice a year
+          - "The standard error (SE) for the year-over-year change is an indicator of the variability associated with the estimate of the change between a given month in a given year and the same month of the previous year, because each month's estimate is based on a sample rather than the entire population. The SE can be used to construct confidence intervals: it can be added to an estimate in order to determine the upper limit of this interval, and then subtracted from the same estimate to determine the lower limit. Using this method, the true value will fall within one SE of the estimate, approximately 68% of the time, and within two standard errors, approximately 95% of the time. For example, if the estimated employment level increases by 160,000 over 12 months and the associated SE is 55,000, the true value of the change in employment has approximately a 68% chance of falling between +105,000 and +215,000. This change would be considered statistically significant at the 68% level as the confidence interval excludes zero. However, if the increase is 40,000, the interval would be -15,000 to +95,000, and this increase would not be considered statistically significant since the interval includes zero. See Section 7 of the Guide to the Labour Force Survey (opens new window) for more information. The standard errors presented in this table are the average of standard errors for 12 previous months and are updated twice a year
+          - Excluding the territories.
+          - Starting in 2006, enhancements to the Labour Force Survey data processing system may have introduced a level shift in some estimates, particularly for less common labour force characteristics. Use caution when comparing estimates before and after 2006. For more information, contact statcan.labour-travail.statcan@statcan.gc.ca
+          - Gender refers to an individual's personal and social identity as a man, woman or non-binary person (a person who is not exclusively a man or a woman). Some people may not identify with a specific gender and a person's gender may change over time. Gender includes the following concepts: gender identity, which refers to the gender that a person feels internally and individually; gender expression, which refers to the way a person presents their gender, regardless of their gender identity, through body language, aesthetic choices or accessories (e.g., clothes, hairstyle and makeup), which may have traditionally been associated with a specific gender. A person's gender may differ from their sex at birth, and from what is indicated on their current identification or legal documents such as their birth certificate, passport or driver's license. LFS started collecting gender of person in 2022. Prior to 2022, LFS only collected information on sex of person (male or female), as declared by the respondent or recorded by the interviewer. The sex variable prior to 2022 and the two-category gender variable since 2022 are combined in this table. Although sex and gender refer to two different concepts, the introduction of gender is not expected to have a significant impact on data analysis and historical comparability, given the small size of the transgender and non-binary populations.
+          - Given that the non-binary population is small, data aggregation to a two-category gender variable is necessary to protect the confidentiality of responses provided. Individuals in the category “non-binary persons” are distributed into the other two gender categories and are denoted by the “+” symbol. The category “Men+” includes men, as well as some non-binary persons, while the category “Women+” includes women, as well as some non-binary persons.
+        source: Statistics Canada
+        source_url: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410028701
+        license: Statistics Canada Open License
+        license_url: https://www.statcan.gc.ca/en/reference/licence
+        columns:
+          REF_DATE: Reference date for the data point
+          GEO: Geographic location
+          DGUID: Unique identifier for the geographic location
+          Geography: Geography
+          Labour force characteristics: Labour force characteristics
+          Gender: Gender
+          Age group: Age group
+          Statistics: Statistics
+          Data type: Data type
+          UOM: Unit of measure
+          UOM_ID: Unit of measure identifier
+          SCALAR_FACTOR: Scalar factor (e.g., thousands, millions)
+          SCALAR_ID: Scalar factor identifier
+          VECTOR: StatsCan vector identifier
+          COORDINATE: Coordinate value
+          VALUE: The measured value
+          STATUS: Status of the data point
+          SYMBOL: Symbol identifier for data quality or notes
+          TERMINATED: Whether this series has been terminated
+          DECIMALS: Number of decimal places
+      statscan_gdp_monthly:
+        title: Gross domestic product, expenditure-based, provincial and territorial,
+          annual
+        description_html: |-
+          Gross domestic product, expenditure-based, provincial and territorial, annual
+
+          Frequency: Annual
+          Coverage: 1981-01-01 to 2024-01-01
+
+          Dimensions: Geography, Prices, Estimates
+
+          Notes:
+          - Canada totals in the provincial and territorial gross domestic product by income and by expenditure accounts (PTEA) do not correspond to the national gross domestic product by income and by expenditure accounts (IEA) estimates at certain times of the year. The two accounts are brought back in line when annual revisions are incorporated.
+          - Terminated with the 1998 data.
+          - Prior to 1999, see Northwest Territories including Nunavut.
+        source: Statistics Canada
+        source_url: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=3610022201
+        license: Statistics Canada Open License
+        license_url: https://www.statcan.gc.ca/en/reference/licence
+        columns:
+          REF_DATE: Reference date for the data point
+          GEO: Geographic location
+          DGUID: Unique identifier for the geographic location
+          Geography: Geography
+          Prices: Prices
+          Estimates: Estimates
+          UOM: Unit of measure
+          UOM_ID: Unit of measure identifier
+          SCALAR_FACTOR: Scalar factor (e.g., thousands, millions)
+          SCALAR_ID: Scalar factor identifier
+          VECTOR: StatsCan vector identifier
+          COORDINATE: Coordinate value
+          VALUE: The measured value
+          STATUS: Status of the data point
+          SYMBOL: Symbol identifier for data quality or notes
+          TERMINATED: Whether this series has been terminated
+          DECIMALS: Number of decimal places
+      statscan_population_july1:
+        title: Population estimates on July 1, by age and gender
+        description_html: |-
+          Population estimates on July 1, by age and gender
+
+          Frequency: Annual
+          Coverage: 1971-01-01 to 2025-01-01
+
+          Dimensions: Geography, Gender, Age group
+
+          Notes:
+          - Postcensal estimates are based on the 2021 Census counts adjusted for census net undercoverage (CNU) (including adjustment for incompletely enumerated reserves and settlements (IERS)) and the components of demographic growth that occurred since that census. Intercensal estimates are produced using counts from two consecutive censuses adjusted for CNU (including IERS) and postcensal estimates.
+          - Estimates are final intercensal up to 2020, final postcensal for 2021, updated postcensal for 2022, 2023 and 2024, and preliminary postcensal for 2025.
+          - Population estimates for Northwest Territories and Nunavut are presented separately from 1991.
+          - Prior to 1991, only estimates of population for Northwest Territories and Nunavut combined are available.
+          - Age at last birthday in years.
+          - Data for persons aged 90 to 100 years and older will be available from 2001.
+          - The population growth, which is used to calculate population estimates, is comprised of natural increase (Tables 17100006 and 17100016), international migration (Table 17100014) and interprovincial migration (Table 17100015).
+          - "The demographic estimates now incorporate the concept of gender, which was first introduced in the 2021 Census of Population. Gender refers to an individual's personal and social identity as a man, woman or non-binary person (a person who is not exclusively a man or a woman). Demographic estimates are available for the gender category "Men+"
+        source: Statistics Canada
+        source_url: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1710000501
+        license: Statistics Canada Open License
+        license_url: https://www.statcan.gc.ca/en/reference/licence
+        columns:
+          REF_DATE: Reference date for the data point
+          GEO: Geographic location
+          DGUID: Unique identifier for the geographic location
+          Geography: Geography
+          Gender: Gender
+          Age group: Age group
+          UOM: Unit of measure
+          UOM_ID: Unit of measure identifier
+          SCALAR_FACTOR: Scalar factor (e.g., thousands, millions)
+          SCALAR_ID: Scalar factor identifier
+          VECTOR: StatsCan vector identifier
+          COORDINATE: Coordinate value
+          VALUE: The measured value
+          STATUS: Status of the data point
+          SYMBOL: Symbol identifier for data quality or notes
+          TERMINATED: Whether this series has been terminated
+          DECIMALS: Number of decimal places
+      statscan_population_quarterly:
+        title: Population estimates, quarterly
+        description_html: |-
+          Population estimates, quarterly
+
+          Frequency: Quarterly
+          Coverage: 1946-01-01 to 2025-10-01
+
+          Dimensions: Geography
+
+          Notes:
+          - Postcensal estimates are based on the 2021 Census counts adjusted for census net undercoverage (CNU) (including adjustment for incompletely enumerated reserves and settlements (IERS)) and the components of demographic growth that occurred since that census. Intercensal estimates are produced using counts from two consecutive censuses adjusted for CNU (including IERS) and postcensal estimates.
+          - Population estimates: Q1 = January 1; Q2 = April 1; Q3 = July 1; Q4 = October 1.
+          - Estimates are final intercensal and unadjusted for census net undercoverage prior to July 1, 1971. Estimates are final intercensal from July 1, 1971 to April 1, 2021, final postcensal from July 1, 2021 to January 1, 2022, updated postcensal from April 1, 2022 to April 1, 2025 and preliminary postcensal from July 1, 2025.
+          - Population estimates for Northwest Territories and Nunavut are presented separately from July 1, 1991.
+          - Prior to July 1, 1991, only population estimates for Northwest Territories and Nunavut combined are available.
+          - The population growth, which is used to calculate population estimates, is comprised of natural increase (Table 17100059), international migration (Table 17100040) and interprovincial migration (Tables 17100020 and 17100045).
+        source: Statistics Canada
+        source_url: https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1710000901
+        license: Statistics Canada Open License
+        license_url: https://www.statcan.gc.ca/en/reference/licence
+        columns:
+          REF_DATE: Reference date for the data point
+          GEO: Geographic location
+          DGUID: Unique identifier for the geographic location
+          Geography: Geography
+          UOM: Unit of measure
+          UOM_ID: Unit of measure identifier
+          SCALAR_FACTOR: Scalar factor (e.g., thousands, millions)
+          SCALAR_ID: Scalar factor identifier
+          VECTOR: StatsCan vector identifier
+          COORDINATE: Coordinate value
+          VALUE: The measured value
+          STATUS: Status of the data point
+          SYMBOL: Symbol identifier for data quality or notes
+          TERMINATED: Whether this series has been terminated
+          DECIMALS: Number of decimal places
