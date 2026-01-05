@@ -3,7 +3,14 @@ require 'cli/ui'
 module PbCli
   module Commands
     class Initialize
-      DB_PATH = File.join(Dir.pwd, 'public_accounts.db')
+      DEFAULT_DB_PATH = File.join(Dir.pwd, 'public_accounts.db')
+      DEFAULT_EXTRACTED_DIR = './extracted'
+      DEFAULT_STATSCAN_DIR = './statscan'
+
+      def initialize(paths = {})
+        @db_path = paths[:db_path] || DEFAULT_DB_PATH
+        @paths = paths
+      end
 
       def call(args)
         ::CLI::UI::Frame.open("Initializing database") do
@@ -47,23 +54,23 @@ module PbCli
 
       def run_extract
         require_relative 'extract'
-        Commands::Extract.new.call([])
+        Commands::Extract.new(@paths).call([])
       end
 
       def run_create_db
         require_relative 'create_db'
         # Use --keep-write-mode to stay in write-optimized mode for statscan loading
-        Commands::CreateDb.new.call(['--keep-write-mode'])
+        Commands::CreateDb.new(@paths).call(['--keep-write-mode'])
       end
 
       def run_statscan_load
         require_relative 'statscan'
-        Commands::Statscan.run(['load'])
+        Commands::Statscan.run(['load'], paths: @paths)
       end
 
       def optimize_for_reads
         require_relative 'create_db'
-        Commands::CreateDb.set_read_optimized_settings(DB_PATH)
+        Commands::CreateDb.new(@paths).set_read_optimized_settings
         puts ::CLI::UI.fmt("{{v}} Database optimization complete")
       end
     end

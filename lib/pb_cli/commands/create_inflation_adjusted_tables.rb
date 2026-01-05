@@ -6,9 +6,13 @@ require 'tempfile'
 module PbCli
   module Commands
     class CreateInflationAdjustedTables
-      DB_PATH = File.join(Dir.pwd, 'public_accounts.db')
+      DEFAULT_DB_PATH = File.join(Dir.pwd, 'public_accounts.db')
       CPI_TABLE_NAME = 'cpi_inflation_indexes'
       MIN_INDEX_YEAR = 2017
+
+      def initialize(paths = {})
+        @db_path = paths[:db_path] || DEFAULT_DB_PATH
+      end
 
       def call(args)
         ::CLI::UI::Frame.open("Creating inflation-adjusted tables") do
@@ -59,7 +63,7 @@ module PbCli
           puts ""
 
           puts ::CLI::UI.fmt("{{v}} Inflation adjustment complete!")
-          puts ::CLI::UI.fmt("{{v}} Database: #{DB_PATH}")
+          puts ::CLI::UI.fmt("{{v}} Database: #{@db_path}")
           puts ::CLI::UI.fmt("{{v}} Reference table: #{CPI_TABLE_NAME}")
           puts ::CLI::UI.fmt("{{v}} Views created: #{tables.size}")
         end
@@ -71,8 +75,8 @@ module PbCli
 
       def check_prerequisites
         # Check database exists
-        unless File.exist?(DB_PATH)
-          puts ::CLI::UI.fmt("{{x}} Database not found: #{DB_PATH}")
+        unless File.exist?(@db_path)
+          puts ::CLI::UI.fmt("{{x}} Database not found: #{@db_path}")
           puts "Run 'pb initialize' to create the database"
           return false
         end
@@ -91,7 +95,7 @@ module PbCli
         # Check statscan_cpi_monthly table exists
         sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='statscan_cpi_monthly'"
         output, _, status = Open3.capture3(
-          'sqlite-utils', 'query', DB_PATH, sql, '--csv'
+          'sqlite-utils', 'query', @db_path, sql, '--csv'
         )
 
         unless status.success? && output.lines.size > 1
@@ -119,7 +123,7 @@ module PbCli
         SQL
 
         output, stderr, status = Open3.capture3(
-          'sqlite-utils', 'query', DB_PATH, sql, '--csv'
+          'sqlite-utils', 'query', @db_path, sql, '--csv'
         )
 
         unless status.success?
@@ -241,7 +245,7 @@ module PbCli
           # Use sqlite-utils to insert
           cmd = [
             'sqlite-utils', 'insert',
-            DB_PATH,
+            @db_path,
             CPI_TABLE_NAME,
             temp_file.path,
             '--alter',
@@ -273,7 +277,7 @@ module PbCli
         SQL
 
         output, stderr, status = Open3.capture3(
-          'sqlite-utils', 'query', DB_PATH, sql, '--csv'
+          'sqlite-utils', 'query', @db_path, sql, '--csv'
         )
 
         unless status.success?
@@ -316,7 +320,7 @@ module PbCli
         # Get table schema using PRAGMA
         pragma_sql = "PRAGMA table_info(#{table_name})"
         pragma_output, _, pragma_status = Open3.capture3(
-          'sqlite-utils', 'query', DB_PATH, pragma_sql, '--csv'
+          'sqlite-utils', 'query', @db_path, pragma_sql, '--csv'
         )
 
         return [] unless pragma_status.success?
@@ -344,7 +348,7 @@ module PbCli
 
         # Get all columns from the base table
         schema_output, _, _ = Open3.capture3(
-          'sqlite-utils', 'query', DB_PATH,
+          'sqlite-utils', 'query', @db_path,
           "PRAGMA table_info(#{table_name})", '--csv'
         )
 
@@ -394,7 +398,7 @@ module PbCli
 
       def execute_query(sql)
         stdout, stderr, status = Open3.capture3(
-          'sqlite-utils', 'query', DB_PATH, sql
+          'sqlite-utils', 'query', @db_path, sql
         )
 
         unless status.success?

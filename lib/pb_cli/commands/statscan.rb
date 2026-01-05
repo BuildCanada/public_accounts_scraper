@@ -13,9 +13,20 @@ module PbCli
         'population_quarterly' => '1710000901'
       }.freeze
 
-      DB_PATH = 'public_accounts.db'
+      DEFAULT_DB_PATH = 'public_accounts.db'
+      DEFAULT_STATSCAN_DIR = 'statscan'
 
-      def self.run(args)
+      def initialize(paths = {})
+        @db_path = paths[:db_path] || DEFAULT_DB_PATH
+        @statscan_dir = paths[:statscan_dir] || DEFAULT_STATSCAN_DIR
+      end
+
+      # Class method wrapper for backward compatibility
+      def self.run(args, paths: {})
+        new(paths).run_instance(args)
+      end
+
+      def run_instance(args)
         if args.empty?
           print_help
           return
@@ -65,7 +76,7 @@ module PbCli
         end
       end
 
-      def self.print_help
+      def print_help
         puts "Usage: pb statscan <subcommand> [options] [dataset_name]"
         puts ""
         puts "Subcommands:"
@@ -89,7 +100,7 @@ module PbCli
         end
       end
 
-      def self.download_all
+      def download_all
         # Check if we're in a TTY environment for pretty output
         if $stdout.tty?
           download_all_with_ui
@@ -98,7 +109,7 @@ module PbCli
         end
       end
 
-      def self.download_all_with_ui
+      def download_all_with_ui
         ::CLI::UI::StdoutRouter.enable
 
         ::CLI::UI::Frame.open("Downloading all Statistics Canada datasets in parallel") do
@@ -133,7 +144,7 @@ module PbCli
         ::CLI::UI::StdoutRouter.disable
       end
 
-      def self.download_all_simple
+      def download_all_simple
         puts "Downloading all Statistics Canada datasets..."
         puts ""
 
@@ -157,7 +168,7 @@ module PbCli
         puts "  ✗ Failed: #{failed_count}" if failed_count > 0
       end
 
-      def self.download(dataset_name)
+      def download(dataset_name)
         unless DATASETS.key?(dataset_name)
           puts "Error: Unknown dataset '#{dataset_name}'"
           puts "\nAvailable datasets:"
@@ -178,10 +189,10 @@ module PbCli
         end
       end
 
-      def self.download_dataset(dataset_name, pid)
+      def download_dataset(dataset_name, pid)
         # Create directory structure
-        metadata_dir = File.join('statscan', 'metadata', dataset_name)
-        data_dir = File.join('statscan', 'data', dataset_name)
+        metadata_dir = File.join(@statscan_dir, 'metadata', dataset_name)
+        data_dir = File.join(@statscan_dir, 'data', dataset_name)
         FileUtils.mkdir_p(metadata_dir)
         FileUtils.mkdir_p(data_dir)
 
@@ -220,10 +231,10 @@ module PbCli
         end
       end
 
-      def self.download_dataset_silent(dataset_name, pid)
+      def download_dataset_silent(dataset_name, pid)
         # Create directory structure
-        metadata_dir = File.join('statscan', 'metadata', dataset_name)
-        data_dir = File.join('statscan', 'data', dataset_name)
+        metadata_dir = File.join(@statscan_dir, 'metadata', dataset_name)
+        data_dir = File.join(@statscan_dir, 'data', dataset_name)
         FileUtils.mkdir_p(metadata_dir)
         FileUtils.mkdir_p(data_dir)
 
@@ -255,7 +266,7 @@ module PbCli
         end
       end
 
-      def self.load_all(limit: nil, index_only: false)
+      def load_all(limit: nil, index_only: false)
         if index_only
           puts "Creating indexes for all Statistics Canada datasets..."
         elsif limit
@@ -271,7 +282,7 @@ module PbCli
 
         DATASETS.each do |dataset_name, pid|
           # Check if data file exists (only needed if not index_only)
-          data_dir = File.join('statscan', 'data', dataset_name)
+          data_dir = File.join(@statscan_dir, 'data', dataset_name)
           data_file = File.join(data_dir, "#{dataset_name}_data.zip")
 
           if !index_only && !File.exist?(data_file)
@@ -305,10 +316,10 @@ module PbCli
         puts "  ⊘ Skipped: #{skipped_count}" if skipped_count > 0
         puts "  ✗ Failed: #{failed_count}" if failed_count > 0
         puts ""
-        puts "Database: #{DB_PATH}"
+        puts "Database: #{@db_path}"
       end
 
-      def self.load(dataset_name, limit: nil, index_only: false)
+      def load(dataset_name, limit: nil, index_only: false)
         unless DATASETS.key?(dataset_name)
           puts "Error: Unknown dataset '#{dataset_name}'"
           puts "\nAvailable datasets:"
@@ -325,7 +336,7 @@ module PbCli
           success = create_indexes_for_table(table_name)
 
           if success
-            puts "\nDatabase: #{DB_PATH}"
+            puts "\nDatabase: #{@db_path}"
             puts "Table: #{table_name}"
           end
           return
@@ -338,7 +349,7 @@ module PbCli
         end
 
         # Check if data file exists
-        data_dir = File.join('statscan', 'data', dataset_name)
+        data_dir = File.join(@statscan_dir, 'data', dataset_name)
         data_file = File.join(data_dir, "#{dataset_name}_data.zip")
 
         unless File.exist?(data_file)
@@ -349,12 +360,12 @@ module PbCli
         success = load_dataset(dataset_name, data_file, data_dir, limit: limit, create_indexes: true)
 
         if success
-          puts "\nDatabase: #{DB_PATH}"
+          puts "\nDatabase: #{@db_path}"
           puts "Table: #{table_name}"
         end
       end
 
-      def self.load_dataset(dataset_name, data_file, data_dir, limit: nil, create_indexes: false)
+      def load_dataset(dataset_name, data_file, data_dir, limit: nil, create_indexes: false)
         # Extract CSV from ZIP
         csv_file = extract_csv_from_zip(data_file, data_dir)
 
@@ -368,13 +379,13 @@ module PbCli
         table_name = "statscan_#{dataset_name}"
 
         # Ensure database directory exists
-        FileUtils.mkdir_p(File.dirname(DB_PATH))
+        FileUtils.mkdir_p(File.dirname(@db_path))
 
         # Build sqlite-utils command
         require 'open3'
         cmd = [
           'sqlite-utils', 'insert',
-          DB_PATH,
+          @db_path,
           table_name,
           csv_file,
           '--csv',
@@ -392,7 +403,7 @@ module PbCli
         if status.success?
           # Get row count
           row_count_output, _, count_status = Open3.capture3(
-            'sqlite-utils', 'query', DB_PATH,
+            'sqlite-utils', 'query', @db_path,
             "SELECT COUNT(*) as count FROM #{table_name}",
             '--csv'
           )
@@ -434,12 +445,12 @@ module PbCli
         end
       end
 
-      def self.create_indexes_for_table(table_name)
+      def create_indexes_for_table(table_name)
         require 'open3'
 
         # Check if table exists
         check_output, _, check_status = Open3.capture3(
-          'sqlite-utils', 'tables', DB_PATH, '--json-cols'
+          'sqlite-utils', 'tables', @db_path, '--json-cols'
         )
 
         unless check_status.success?
@@ -457,7 +468,7 @@ module PbCli
 
         # Get columns from the table
         columns_output, _, columns_status = Open3.capture3(
-          'sqlite-utils', 'schema', DB_PATH, table_name
+          'sqlite-utils', 'schema', @db_path, table_name
         )
 
         unless columns_status.success?
@@ -509,7 +520,7 @@ module PbCli
           index_name = "idx_#{table_name}_#{column.downcase.gsub(/[^a-z0-9_]/, '_')}"
 
           stdout, stderr, status = Open3.capture3(
-            'sqlite-utils', 'create-index', DB_PATH,
+            'sqlite-utils', 'create-index', @db_path,
             table_name, column,
             '--if-not-exists',
             '--analyze'
@@ -529,7 +540,7 @@ module PbCli
         true
       end
 
-      def self.extract_csv_from_zip(zip_file, output_dir)
+      def extract_csv_from_zip(zip_file, output_dir)
         # Find and extract the main CSV file from the ZIP
         Zip::File.open(zip_file) do |zip|
           # Look for the main data CSV (usually the largest file or has specific pattern)
@@ -547,7 +558,7 @@ module PbCli
         nil
       end
 
-      def self.download_file(url, output_path)
+      def download_file(url, output_path)
         # Use curl for downloading files (more robust than Net::HTTP)
         # -L: follow redirects
         # -s: silent mode (no progress bar)
@@ -556,7 +567,7 @@ module PbCli
         system('curl', '-L', '-s', '-S', '-o', output_path, url, exception: true)
       end
 
-      def self.metadata_unchanged?(metadata_url, metadata_file)
+      def metadata_unchanged?(metadata_url, metadata_file)
         # If metadata file doesn't exist locally, data needs downloading
         return false unless File.exist?(metadata_file)
 
@@ -579,6 +590,15 @@ module PbCli
           temp_file.close
           temp_file.unlink
         end
+      end
+
+      # Class method wrappers for testing
+      def self.metadata_unchanged?(metadata_url, metadata_file)
+        new.metadata_unchanged?(metadata_url, metadata_file)
+      end
+
+      def self.download_file(url, output_path)
+        new.download_file(url, output_path)
       end
     end
   end

@@ -3,24 +3,21 @@ require 'pb_cli/commands/initialize'
 require 'fileutils'
 
 class TestInitialize < Minitest::Test
+  include TestPaths
+
   def setup
-    @command = PbCli::Commands::Initialize.new
-    @db_path = File.join(Dir.pwd, 'public_accounts.db')
-    @extracted_dir = './extracted'
-    @statscan_dir = './statscan'
+    @test_paths = setup_test_paths('initialize')
+    @command = PbCli::Commands::Initialize.new(@test_paths)
+    @db_path = @test_paths[:db_path]
   end
 
   def teardown
-    # Clean up test files
-    FileUtils.rm(@db_path) if File.exist?(@db_path)
-    FileUtils.rm("#{@db_path}-shm") if File.exist?("#{@db_path}-shm")
-    FileUtils.rm("#{@db_path}-wal") if File.exist?("#{@db_path}-wal")
-    FileUtils.rm_rf(@extracted_dir) if Dir.exist?(@extracted_dir)
+    cleanup_test_paths(@test_paths)
   end
 
   def test_initialize_returns_success_code
     # Skip this test if no raw data is available
-    skip "No raw data available for extraction" unless Dir.exist?('./raw')
+    skip "No raw data available for extraction" unless Dir.exist?(@test_paths[:raw_dir])
 
     result = @command.call([])
     assert_equal 0, result
@@ -28,7 +25,7 @@ class TestInitialize < Minitest::Test
 
   def test_initialize_creates_database
     # Skip this test if no raw data is available
-    skip "No raw data available for extraction" unless Dir.exist?('./raw')
+    skip "No raw data available for extraction" unless Dir.exist?(@test_paths[:raw_dir])
 
     @command.call([])
     assert File.exist?(@db_path), "Database should be created"
@@ -36,7 +33,7 @@ class TestInitialize < Minitest::Test
 
   def test_initialize_sets_wal_mode
     # Skip this test if no raw data is available
-    skip "No raw data available for extraction" unless Dir.exist?('./raw')
+    skip "No raw data available for extraction" unless Dir.exist?(@test_paths[:raw_dir])
 
     @command.call([])
 

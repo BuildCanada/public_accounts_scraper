@@ -3,19 +3,17 @@ require 'pb_cli/commands/extract'
 require 'json'
 
 class TestExtract < Minitest::Test
-  def setup
-    @command = PbCli::Commands::Extract.new
-    @output_dir = './extracted'
-    @data_dir = File.join(@output_dir, 'data')
-    @metadata_dir = File.join(@output_dir, 'metadata')
+  include TestPaths
 
-    # Clean up any existing extraction files
-    FileUtils.rm_rf(@output_dir) if Dir.exist?(@output_dir)
+  def setup
+    @test_paths = setup_test_paths('extract')
+    @command = PbCli::Commands::Extract.new(@test_paths)
+    @data_dir = @test_paths[:data_dir]
+    @metadata_dir = @test_paths[:metadata_dir]
   end
 
   def teardown
-    # Clean up test files
-    FileUtils.rm_rf(@output_dir) if Dir.exist?(@output_dir)
+    cleanup_test_paths(@test_paths)
   end
 
   def test_extract_with_no_args_runs_all_extractors

@@ -4,34 +4,39 @@ require 'fileutils'
 module PbCli
   module Commands
     class CreateDb
-      DB_PATH = File.join(Dir.pwd, 'public_accounts.db')
-      DATA_DIR = File.join(Dir.pwd, 'extracted', 'data')
+      DEFAULT_DB_PATH = File.join(Dir.pwd, 'public_accounts.db')
+      DEFAULT_DATA_DIR = File.join(Dir.pwd, 'extracted', 'data')
 
-      # Class methods for database optimization
-      def self.set_write_optimized_settings(db_path = DB_PATH)
-        # Optimize for bulk loading: prioritize write speed over safety
-        execute_pragma(db_path, "journal_mode = OFF")      # Disable journaling during load
-        execute_pragma(db_path, "synchronous = OFF")       # Don't wait for disk writes
-        execute_pragma(db_path, "cache_size = -64000")     # 64MB cache
-        execute_pragma(db_path, "temp_store = MEMORY")     # Keep temp data in memory
-        execute_pragma(db_path, "locking_mode = EXCLUSIVE") # Exclusive access during load
+      def initialize(paths = {})
+        @db_path = paths[:db_path] || DEFAULT_DB_PATH
+        @data_dir = paths[:data_dir] || DEFAULT_DATA_DIR
       end
 
-      def self.set_read_optimized_settings(db_path = DB_PATH)
+      # Instance methods for database optimization
+      def set_write_optimized_settings
+        # Optimize for bulk loading: prioritize write speed over safety
+        execute_pragma("journal_mode = OFF")      # Disable journaling during load
+        execute_pragma("synchronous = OFF")       # Don't wait for disk writes
+        execute_pragma("cache_size = -64000")     # 64MB cache
+        execute_pragma("temp_store = MEMORY")     # Keep temp data in memory
+        execute_pragma("locking_mode = EXCLUSIVE") # Exclusive access during load
+      end
+
+      def set_read_optimized_settings
         # Optimize for read-heavy workloads
-        execute_pragma(db_path, "locking_mode = NORMAL")   # Allow concurrent access
-        execute_pragma(db_path, "journal_mode = WAL")      # Write-Ahead Logging for concurrent reads
-        execute_pragma(db_path, "synchronous = NORMAL")    # Balance safety and performance
-        execute_pragma(db_path, "cache_size = -2000")      # 2MB cache
-        execute_pragma(db_path, "temp_store = DEFAULT")    # Default temp storage
+        execute_pragma("locking_mode = NORMAL")   # Allow concurrent access
+        execute_pragma("journal_mode = WAL")      # Write-Ahead Logging for concurrent reads
+        execute_pragma("synchronous = NORMAL")    # Balance safety and performance
+        execute_pragma("cache_size = -2000")      # 2MB cache
+        execute_pragma("temp_store = DEFAULT")    # Default temp storage
 
         # Analyze database for query optimization
-        cmd = "sqlite-utils query #{db_path} 'PRAGMA optimize'"
+        cmd = "sqlite-utils query #{@db_path} 'PRAGMA optimize'"
         `#{cmd} 2>&1`
       end
 
-      def self.execute_pragma(db_path, pragma)
-        cmd = "sqlite-utils query #{db_path} 'PRAGMA #{pragma}'"
+      def execute_pragma(pragma)
+        cmd = "sqlite-utils query #{@db_path} 'PRAGMA #{pragma}'"
         output = `#{cmd} 2>&1`
         status = $?.exitstatus
 
@@ -39,6 +44,15 @@ module PbCli
           puts ::CLI::UI.fmt("{{x}} Warning: Failed to set PRAGMA #{pragma}")
           puts output if ENV['DEBUG']
         end
+      end
+
+      # Class method wrappers for backward compatibility
+      def self.set_write_optimized_settings(db_path = DEFAULT_DB_PATH)
+        new(db_path: db_path).set_write_optimized_settings
+      end
+
+      def self.set_read_optimized_settings(db_path = DEFAULT_DB_PATH)
+        new(db_path: db_path).set_read_optimized_settings
       end
 
       def call(args)
@@ -59,18 +73,18 @@ module PbCli
         end
 
         # Find all JSON files
-        json_files = Dir.glob(File.join(DATA_DIR, '*.json'))
+        json_files = Dir.glob(File.join(@data_dir, '*.json'))
 
         if json_files.empty?
-          puts ::CLI::UI.fmt("{{x}} No JSON files found in #{DATA_DIR}")
+          puts ::CLI::UI.fmt("{{x}} No JSON files found in #{@data_dir}")
           puts "Run 'pb extract' first to generate data files"
           return 1
         end
 
         # Delete existing database if it exists
-        if File.exist?(DB_PATH)
-          FileUtils.rm(DB_PATH)
-          puts ::CLI::UI.fmt("{{i}} Deleted existing database: #{DB_PATH}")
+        if File.exist?(@db_path)
+          FileUtils.rm(@db_path)
+          puts ::CLI::UI.fmt("{{i}} Deleted existing database: #{@db_path}")
         end
 
         # Create database
@@ -79,11 +93,11 @@ module PbCli
         # Set write-optimized SQLite settings for bulk loading (unless skipped)
         unless skip_optimization
           puts ::CLI::UI.fmt("{{i}} Optimizing database for bulk loading...")
-          self.class.set_write_optimized_settings(DB_PATH)
+          set_write_optimized_settings
         end
 
         # Process each JSON file
-        ::CLI::UI::Frame.open("Creating database: #{DB_PATH}") do
+        ::CLI::UI::Frame.open("Creating database: #{@db_path}") do
           json_files.each do |json_file|
             table_name = File.basename(json_file, '.json')
             insert_json_file(json_file, table_name)
@@ -92,14 +106,14 @@ module PbCli
           # Show summary
           puts ""
           puts ::CLI::UI.fmt("{{v}} Database created successfully")
-          puts ::CLI::UI.fmt("{{v}} Location: #{DB_PATH}")
+          puts ::CLI::UI.fmt("{{v}} Location: #{@db_path}")
           puts ::CLI::UI.fmt("{{v}} Tables: #{json_files.size}")
         end
 
         # Set read-optimized SQLite settings for queries (unless skipped or keeping write mode)
         unless skip_optimization || keep_write_mode
           puts ::CLI::UI.fmt("{{i}} Optimizing database for read workloads...")
-          self.class.set_read_optimized_settings(DB_PATH)
+          set_read_optimized_settings
           puts ::CLI::UI.fmt("{{v}} Database optimization complete")
         end
 
@@ -113,7 +127,7 @@ module PbCli
       end
 
       def create_database
-        cmd = "sqlite-utils create-database #{DB_PATH}"
+        cmd = "sqlite-utils create-database #{@db_path}"
         output = `#{cmd} 2>&1`
         status = $?.exitstatus
 
@@ -132,7 +146,7 @@ module PbCli
           cmd = [
             'sqlite-utils',
             'insert',
-            DB_PATH,
+            @db_path,
             table_name,
             json_file,
             '--alter',

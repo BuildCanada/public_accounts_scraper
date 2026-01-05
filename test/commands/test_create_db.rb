@@ -3,11 +3,13 @@ require 'pb_cli/commands/create_db'
 require 'json'
 
 class TestCreateDb < Minitest::Test
+  include TestPaths
+
   def setup
-    @command = PbCli::Commands::CreateDb.new
-    @extracted_dir = './extracted'
-    @data_dir = File.join(@extracted_dir, 'data')
-    @db_path = './public_accounts.db'
+    @test_paths = setup_test_paths('create_db')
+    @command = PbCli::Commands::CreateDb.new(@test_paths)
+    @data_dir = @test_paths[:data_dir]
+    @db_path = @test_paths[:db_path]
 
     # Create test data directory and sample JSON file
     FileUtils.mkdir_p(@data_dir)
@@ -15,9 +17,7 @@ class TestCreateDb < Minitest::Test
   end
 
   def teardown
-    # Clean up test files
-    FileUtils.rm_f(@db_path) if File.exist?(@db_path)
-    FileUtils.rm_rf(@extracted_dir) if Dir.exist?(@extracted_dir)
+    cleanup_test_paths(@test_paths)
   end
 
   def test_create_db_with_sqlite_utils_installed
@@ -56,9 +56,8 @@ class TestCreateDb < Minitest::Test
   end
 
   def test_create_db_without_json_files
-    # Remove test JSON file
-    FileUtils.rm_rf(@data_dir)
-    FileUtils.mkdir_p(@data_dir)
+    # Remove test JSON files but keep directory
+    FileUtils.rm(File.join(@data_dir, 'test_data.json'))
 
     result = @command.call([])
     assert_equal 1, result, "Should return error when no JSON files exist"

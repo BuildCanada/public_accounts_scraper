@@ -5,12 +5,15 @@ require 'csv'
 require 'fileutils'
 
 class TestCreateMetadata < Minitest::Test
+  include TestPaths
+
   def setup
-    @test_dir = './test_metadata_temp'
+    # Save original directory FIRST, before any test setup that might fail
     @original_dir = Dir.pwd
+    @test_paths = setup_test_paths('create_metadata')
+    @test_dir = @test_paths[:base_dir]
 
     # Create test directory structure
-    FileUtils.mkdir_p(@test_dir)
     FileUtils.mkdir_p(File.join(@test_dir, 'extracted/metadata'))
     FileUtils.mkdir_p(File.join(@test_dir, 'statscan/metadata/test_dataset'))
 
@@ -56,11 +59,11 @@ class TestCreateMetadata < Minitest::Test
   end
 
   def teardown
-    # Change back to original directory
-    Dir.chdir(@original_dir)
+    # Change back to original directory (if it was saved)
+    Dir.chdir(@original_dir) if @original_dir
 
     # Clean up test directory
-    FileUtils.rm_rf(@test_dir) if Dir.exist?(@test_dir)
+    cleanup_test_paths(@test_paths)
   end
 
   def test_creates_metadata_yaml_file

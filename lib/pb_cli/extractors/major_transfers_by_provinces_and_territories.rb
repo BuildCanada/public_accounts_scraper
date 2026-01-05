@@ -3,6 +3,10 @@ require_relative 'base'
 module PbCli
   module Extractors
     class MajorTransfersByProvincesAndTerritories < Base
+      def initialize(paths = {})
+        super(paths)
+      end
+
       def extractor_name
         'major_transfers_by_provinces_and_territories'
       end

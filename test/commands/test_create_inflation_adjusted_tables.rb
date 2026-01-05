@@ -226,15 +226,8 @@ class TestCreateInflationAdjustedTables < Minitest::Test
   end
 
   def stub_db_path(db_path)
-    # Temporarily override the DB_PATH constant
-    original_path = PbCli::Commands::CreateInflationAdjustedTables::DB_PATH
-    PbCli::Commands::CreateInflationAdjustedTables.send(:remove_const, :DB_PATH)
-    PbCli::Commands::CreateInflationAdjustedTables.const_set(:DB_PATH, db_path)
-
+    # No longer needed with dependency injection - just instantiate with the path
+    @command = PbCli::Commands::CreateInflationAdjustedTables.new(db_path: db_path)
     yield
-  ensure
-    # Restore original constant
-    PbCli::Commands::CreateInflationAdjustedTables.send(:remove_const, :DB_PATH)
-    PbCli::Commands::CreateInflationAdjustedTables.const_set(:DB_PATH, original_path)
   end
 end

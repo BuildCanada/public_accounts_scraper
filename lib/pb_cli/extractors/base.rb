@@ -5,9 +5,10 @@ require 'nokogiri'
 module PbCli
   module Extractors
     class Base
-      def initialize
-        @data_dir = './extracted/data'
-        @metadata_dir = './extracted/metadata'
+      def initialize(paths = {})
+        @raw_dir = paths[:raw_dir] || './raw'
+        @data_dir = paths[:data_dir] || './extracted/data'
+        @metadata_dir = paths[:metadata_dir] || './extracted/metadata'
       end
 
       # Abstract method - must be implemented by subclasses
@@ -24,12 +25,13 @@ module PbCli
 
       # Find HTML files matching a glob pattern across all year directories
       def find_html_files(pattern)
-        Dir.glob("./raw/*/#{pattern}").sort
+        Dir.glob("#{@raw_dir}/*/#{pattern}").sort
       end
 
       # Extract year from a file path
+      # Works with both ./raw/2024/... and /tmp/test/raw/2024/... patterns
       def year_from_path(path)
-        path.match(%r{/raw/(\d{4})/})&.captures&.first&.to_i
+        path.match(%r{/(\d{4})/})&.captures&.first&.to_i
       end
 
       # Export data as JSON

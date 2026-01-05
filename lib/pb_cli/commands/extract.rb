@@ -9,6 +9,10 @@ module PbCli
         'major_transfers_by_provinces_and_territories' => PbCli::Extractors::MajorTransfersByProvincesAndTerritories
       }.freeze
 
+      def initialize(paths = {})
+        @paths = paths
+      end
+
       def call(args)
         if args.empty?
           # Run all extractors
@@ -42,7 +46,7 @@ module PbCli
       def run_extractor(name)
         ::CLI::UI::Frame.open("Extractor: #{name}") do
           extractor_class = EXTRACTORS[name]
-          extractor = extractor_class.new
+          extractor = extractor_class.new(@paths)
 
           result = extractor.extract
 
