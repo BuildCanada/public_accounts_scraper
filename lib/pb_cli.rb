@@ -37,6 +37,9 @@ module PbCli
       when 'validate'
         require_relative 'pb_cli/commands/validate'
         Commands::Validate.new.call(command_args)
+      when 'create-views'
+        require_relative 'pb_cli/commands/create_views'
+        Commands::CreateViews.new.call(command_args)
       else
         puts "Unknown command: #{command}"
         puts ""
@@ -57,6 +60,7 @@ module PbCli
       puts "  pb create-inflation-adjusted-tables"
       puts "  pb create-metadata"
       puts "  pb validate [TABLE_NAME]"
+      puts "  pb create-views"
       puts ""
       puts "Examples:"
       puts "  pb scrape 2025              # Scrape single year"
@@ -71,6 +75,7 @@ module PbCli
       puts "  pb create-metadata          # Create consolidated metadata.yaml"
       puts "  pb validate                 # Validate all tables in database"
       puts "  pb validate major_transfers_by_provinces_and_territories  # Validate specific table"
+      puts "  pb create-views             # Create views from db/views SQL files"
     end
   end
 end
