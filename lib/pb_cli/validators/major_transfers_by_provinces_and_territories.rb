@@ -18,7 +18,7 @@ module PbCli
         'Prince Edward Island',
         'Quebec',
         'Saskatchewan',
-        'Yukon Territory'
+        'Yukon'
       ].freeze
 
       # Subset that are actual provinces/territories (for data completeness checks)

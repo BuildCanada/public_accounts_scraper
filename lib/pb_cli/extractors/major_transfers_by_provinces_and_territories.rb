@@ -63,7 +63,10 @@ module PbCli
           # Check if this row has a province/territory name (rowspan cell)
           province_cell = row.at_css('th[rowspan]')
           if province_cell
-            current_province = province_cell.text.strip
+            # Normalize whitespace: replace multiple spaces/newlines with single space
+            current_province = province_cell.text.strip.gsub(/\s+/, ' ')
+            # Normalize province names
+            current_province = normalize_province_name(current_province)
             province_position += 1
           end
 
@@ -115,15 +118,23 @@ module PbCli
         records
       end
 
+      def normalize_province_name(name)
+        # Yukon Territory was renamed to just "Yukon" in 2003 (Yukon Act)
+        name = 'Yukon' if name == 'Yukon Territory'
+        name
+      end
+
       def is_total_or_subtotal?(province_territory)
-        # Check if the province_territory name indicates a total or subtotal row
+        # Check if the province_territory name indicates a total, subtotal, or adjustment row
         name_lower = province_territory.downcase.strip
 
-        # Patterns that indicate totals or subtotals
+        # Patterns that indicate totals, subtotals, or adjustments (not actual provinces/territories)
         total_patterns = [
           /^total/,
           /^subtotal/,
-          /^add:/
+          /^add:/,
+          /^accrual and other adjustments$/,
+          /^transfers made through the tax system$/
         ]
 
         total_patterns.any? { |pattern| name_lower.match?(pattern) }
@@ -160,9 +171,9 @@ module PbCli
           # Get text content, removing footnote links
           header_text = th.text.strip
 
-          # Remove footnote references (e.g., "Link to footnote 6", "Link to table note 8")
-          header_text = header_text.gsub(/Link to (footnote|table note|Footnote) \d+/, '')
-                                   .gsub(/Links to (footnote|table note|Footnote) \d+ in .*/, '')
+          # Remove footnote references (e.g., "Link to footnote 6", "Link to table note 8", "Link to Table note 7")
+          # Note: case-insensitive to handle variations like "Table note" vs "table note"
+          header_text = header_text.gsub(/Links? to (footnote|table note) \d+( in [^,]+)?/i, '')
                                    .gsub(/\d+$/, '')  # Remove trailing numbers
                                    .strip
 
