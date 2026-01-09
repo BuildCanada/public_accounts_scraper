@@ -195,6 +195,119 @@ class TestCreateInflationAdjustedTables < Minitest::Test
     FileUtils.mv("#{@db_path}.bak", @db_path) if File.exist?("#{@db_path}.bak")
   end
 
+  def test_inflation_adjusted_view_is_queryable
+    # This test ensures views created by the command can actually be queried
+    # It would have caught the source_year column issue where the view referenced
+    # a column that didn't exist in the base table
+    stub_db_path(@db_path) do
+      # Create the inflation views
+      @command.call([])
+
+      # Verify the view exists and can be queried
+      query_output, stderr, status = Open3.capture3(
+        'sqlite-utils', 'query', @db_path,
+        "SELECT * FROM test_transfers_inflation_adjusted LIMIT 1", '--csv'
+      )
+
+      assert status.success?, "View query should succeed: #{stderr}"
+      assert query_output.lines.size >= 1, "View should return at least a header row"
+    end
+  end
+
+  def test_inflation_adjusted_view_with_source_year_column
+    # This test verifies that tables with source_year column have correctly
+    # functioning inflation-adjusted views (the view filters by source_year
+    # but does not include it in the output)
+    stub_db_path(@db_path) do
+      # Create a table with source_year to mimic budgetary_details_by_allotment
+      table_with_source_year = [
+        {
+          'source_year' => 2020,
+          'year' => 2020,
+          'ministry_code' => 'test-ministry',
+          'description' => 'Test item',
+          'allotments' => 1000.0,
+          'expenditures' => 900.0
+        },
+        {
+          'source_year' => 2021,
+          'year' => 2020,  # Same year, different source - will be filtered
+          'ministry_code' => 'test-ministry',
+          'description' => 'Test item updated',
+          'allotments' => 1050.0,
+          'expenditures' => 950.0
+        },
+        {
+          'source_year' => 2021,
+          'year' => 2021,
+          'ministry_code' => 'test-ministry',
+          'description' => 'Test item year 2',
+          'allotments' => 1100.0,
+          'expenditures' => 1000.0
+        }
+      ]
+
+      temp_file = Tempfile.new(['table_with_source', '.json'])
+      begin
+        temp_file.write(JSON.pretty_generate(table_with_source_year))
+        temp_file.close
+
+        system("sqlite-utils insert #{@db_path} table_with_source_year #{temp_file.path} --alter 2>&1 > /dev/null")
+      ensure
+        temp_file.unlink
+      end
+
+      # Create the inflation views
+      @command.call([])
+
+      # Verify the view exists and can be queried
+      query_output, stderr, status = Open3.capture3(
+        'sqlite-utils', 'query', @db_path,
+        "SELECT year, ministry_code, description, allotments FROM table_with_source_year_inflation_adjusted ORDER BY year", '--csv'
+      )
+
+      assert status.success?, "View with source_year should be queryable: #{stderr}"
+
+      # Verify the view filters to use most recent source_year per fiscal year
+      lines = query_output.lines
+      assert lines.size == 3, "Should have header + 2 data rows (year 2020 from source 2021, year 2021 from source 2021)"
+
+      # Year 2020 should come from source_year 2021 (most recent) with updated values
+      if lines.size >= 2
+        row_2020 = lines[1].strip
+        assert row_2020.include?('Test item updated'), "Year 2020 should use source_year 2021 data: #{row_2020}"
+      end
+    end
+  end
+
+  def test_all_non_statscan_tables_have_queryable_views
+    # Integration test: after running the command, verify ALL created views are queryable
+    stub_db_path(@db_path) do
+      # Run the command
+      @command.call([])
+
+      # Get all inflation-adjusted views
+      views_output, _, _ = Open3.capture3(
+        'sqlite-utils', 'query', @db_path,
+        "SELECT name FROM sqlite_master WHERE type='view' AND name LIKE '%_inflation_adjusted'", '--csv'
+      )
+
+      view_names = views_output.lines[1..-1].map(&:strip).reject(&:empty?)
+
+      assert view_names.size > 0, "At least one inflation-adjusted view should be created"
+
+      # Verify each view is queryable
+      view_names.each do |view_name|
+        query_output, stderr, status = Open3.capture3(
+          'sqlite-utils', 'query', @db_path,
+          "SELECT * FROM #{view_name} LIMIT 1", '--csv'
+        )
+
+        assert status.success?, "View #{view_name} should be queryable: #{stderr}"
+      end
+    end
+  end
+
   private
 
   def sqlite_utils_installed?
@@ -260,8 +373,10 @@ class TestCreateInflationAdjustedTables < Minitest::Test
     end
 
     # Create test transfers table
+    # Must include source_year as inflation-adjusted views filter on it
     transfers_data = [
       {
+        'source_year' => 2020,
         'year' => 2020,
         'province_territory' => 'Ontario',
         'position' => 1,
@@ -269,6 +384,7 @@ class TestCreateInflationAdjustedTables < Minitest::Test
         'transfer_amount' => 1000.0
       },
       {
+        'source_year' => 2021,
         'year' => 2021,
         'province_territory' => 'Ontario',
         'position' => 2,

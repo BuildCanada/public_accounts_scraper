@@ -12,4 +12,8 @@ statscan/
 # Database files
 public_accounts.db
 public_accounts.statscan_base.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.bak.db
 tmp/*
