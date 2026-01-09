@@ -68,16 +68,22 @@ By default, the command automatically:
 
 ### Initialize database
 ```bash
-./bin/pb initialize
+./bin/pb initialize [OPTIONS]
 ```
 
 Runs the complete workflow to create and populate the database:
-1. Extracts data from downloaded HTML files (`pb extract`)
-2. Creates database and loads extracted JSON data (`pb create-db --keep-write-mode`)
-3. Loads Statistics Canada datasets (`pb statscan load`)
-4. Optimizes database for read-heavy workloads
+1. Deletes any existing `public_accounts.db` database
+2. Initializes Statistics Canada data cache (creates `public_accounts.statscan_base.db` if not present)
+3. Copies statscan cache as the base database
+4. Extracts data from downloaded HTML files (`pb extract`)
+5. Loads extracted JSON data into database
+6. Creates inflation-adjusted tables (`pb create-inflation-adjusted-tables`)
+7. Creates views and optimizes database for read-heavy workloads
 
-This command is optimized for bulk loading: it keeps the database in write-optimized mode while loading all data, then switches to read-optimized mode at the end for better query performance.
+**Options:**
+- `--force`: Delete the statscan cache and rebuild it from scratch
+
+**Statistics Canada Cache**: The statscan data is cached separately in `public_accounts.statscan_base.db` because it takes a long time to load. On subsequent runs, the cached database is copied as the base, significantly speeding up initialization. Use `--force` to rebuild the cache.
 
 **Prerequisites**: Requires data to be downloaded first using `pb scrape` and `pb statscan download`
 

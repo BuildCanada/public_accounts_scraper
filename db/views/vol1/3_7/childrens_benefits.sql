@@ -17,12 +17,16 @@ SELECT
   MAX(CASE WHEN province_territory = 'Yukon' THEN childrens_benefits END) AS "Yukon",
   -- Special categories
   MAX(CASE WHEN province_territory = 'International' THEN childrens_benefits END) AS "International",
-  MAX(CASE WHEN province_territory = 'Transfers made through the tax system' THEN childrens_benefits END) AS "Tax System",
+  COALESCE(
+    MAX(CASE WHEN province_territory = 'Transfers made through the tax system' THEN childrens_benefits END),
+    MAX(CASE WHEN province_territory = 'Add: transfers made through the tax system' THEN childrens_benefits END)
+  ) AS "Tax System",
   COALESCE(
     MAX(CASE WHEN province_territory = 'Accrual and other adjustments' THEN childrens_benefits END),
     MAX(CASE WHEN province_territory = 'Accrual and other  adjustments' THEN childrens_benefits END)
   ) AS "Accrual Adjustments"
 FROM major_transfers_by_provinces_and_territories_inflation_adjusted
 WHERE is_total_or_subtotal = 0
+   OR province_territory IN ('Transfers made through the tax system', 'Add: transfers made through the tax system')
 GROUP BY year
 ORDER BY year;

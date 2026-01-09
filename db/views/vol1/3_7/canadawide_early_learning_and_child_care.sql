@@ -24,5 +24,6 @@ SELECT
   ) AS "Accrual Adjustments"
 FROM major_transfers_by_provinces_and_territories_inflation_adjusted
 WHERE is_total_or_subtotal = 0
+   OR province_territory IN ('Accrual and other adjustments', 'Accrual and other  adjustments')
 GROUP BY year
 ORDER BY year;
