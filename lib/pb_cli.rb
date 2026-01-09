@@ -40,6 +40,9 @@ module PbCli
       when 'create-views'
         require_relative 'pb_cli/commands/create_views'
         Commands::CreateViews.new.call(command_args)
+      when 'normalize-descriptions'
+        require_relative 'pb_cli/commands/normalize_descriptions'
+        Commands::NormalizeDescriptions.new.call(command_args)
       else
         puts "Unknown command: #{command}"
         puts ""
@@ -58,6 +61,7 @@ module PbCli
       puts "  pb statscan download <dataset_name>"
       puts "  pb initialize"
       puts "  pb create-inflation-adjusted-tables"
+      puts "  pb normalize-descriptions"
       puts "  pb create-metadata"
       puts "  pb validate [TABLE_NAME]"
       puts "  pb create-views"
@@ -72,6 +76,7 @@ module PbCli
       puts "  pb statscan download cpi_monthly  # Download Statistics Canada CPI data"
       puts "  pb initialize               # Run extract, create-db, and statscan load"
       puts "  pb create-inflation-adjusted-tables  # Create CPI-adjusted views"
+      puts "  pb normalize-descriptions   # Normalize transfer payment descriptions across years"
       puts "  pb create-metadata          # Create consolidated metadata.yaml"
       puts "  pb validate                 # Validate all tables in database"
       puts "  pb validate major_transfers_by_provinces_and_territories  # Validate specific table"
