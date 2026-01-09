@@ -1,12 +1,14 @@
 require 'cli/ui'
 require_relative '../extractors/major_transfers_by_provinces_and_territories'
+require_relative '../extractors/transfer_payments_by_ministry'
 
 module PbCli
   module Commands
     class Extract
       # Registry of available extractors
       EXTRACTORS = {
-        'major_transfers_by_provinces_and_territories' => PbCli::Extractors::MajorTransfersByProvincesAndTerritories
+        'major_transfers_by_provinces_and_territories' => PbCli::Extractors::MajorTransfersByProvincesAndTerritories,
+        'transfer_payments_by_ministry' => PbCli::Extractors::TransferPaymentsByMinistry
       }.freeze
 
       def initialize(paths = {})
