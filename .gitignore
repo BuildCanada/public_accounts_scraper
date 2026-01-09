@@ -11,3 +11,5 @@ statscan/
 
 # Database files
 public_accounts.db
+public_accounts.statscan_base.db
+tmp/*

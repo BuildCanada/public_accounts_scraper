@@ -140,6 +140,14 @@ module PbCli
         total_patterns.any? { |pattern| name_lower.match?(pattern) }
       end
 
+      # Mapping of variant column names to canonical names
+      # This handles cases where the same data has different header names across years
+      COLUMN_NAME_MAPPINGS = {
+        # "Employment insurance benefits" (2013-2016) and "Employment insurance" (2017+)
+        # represent the same data series
+        'employment_insurance_benefits' => 'employment_insurance'
+      }.freeze
+
       def extract_headers(table)
         headers = []
 
@@ -178,6 +186,8 @@ module PbCli
                                    .strip
 
           normalized = normalize_column_name(header_text)
+          # Apply column name mappings to standardize variant names
+          normalized = COLUMN_NAME_MAPPINGS.fetch(normalized, normalized)
           headers << normalized unless normalized.empty?
         end
 

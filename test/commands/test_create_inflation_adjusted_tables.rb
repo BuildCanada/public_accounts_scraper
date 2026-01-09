@@ -37,6 +37,30 @@ class TestCreateInflationAdjustedTables < Minitest::Test
     assert_equal 1, fiscal_year_data[2018][:months_count], "FY 2018 should have 1 month"
   end
 
+  def test_calendar_year_calculation
+    cpi_data = [
+      { ref_date: '2016-01', value: 127.0 },
+      { ref_date: '2016-06', value: 128.0 },
+      { ref_date: '2016-12', value: 129.0 },
+      { ref_date: '2017-01', value: 130.0 },
+      { ref_date: '2017-06', value: 131.0 }
+    ]
+
+    calendar_year_data = @command.send(:calculate_calendar_year_averages, cpi_data)
+
+    # 2016 should have 3 months (Jan, Jun, Dec)
+    assert calendar_year_data.key?(2016), "Calendar year 2016 should exist"
+    assert_equal 3, calendar_year_data[2016][:months_count], "2016 should have 3 months"
+    expected_avg_2016 = (127.0 + 128.0 + 129.0) / 3.0
+    assert_in_delta expected_avg_2016, calendar_year_data[2016][:avg_cpi], 0.01
+
+    # 2017 should have 2 months (Jan, Jun)
+    assert calendar_year_data.key?(2017), "Calendar year 2017 should exist"
+    assert_equal 2, calendar_year_data[2017][:months_count], "2017 should have 2 months"
+    expected_avg_2017 = (130.0 + 131.0) / 2.0
+    assert_in_delta expected_avg_2017, calendar_year_data[2017][:avg_cpi], 0.01
+  end
+
   def test_detect_latest_complete_year
     fiscal_year_data = {
       2020 => { avg_cpi: 135.0, months_count: 12 },
@@ -117,6 +141,45 @@ class TestCreateInflationAdjustedTables < Minitest::Test
       count = lines[1].strip.to_i if lines.size > 1
 
       assert_equal 2, count, "Should have 2 records in CPI table"
+    end
+  end
+
+  def test_create_calendar_cpi_reference_table
+    stub_db_path(@db_path) do
+      # Create calendar year CPI data
+      calendar_year_data = {
+        2020 => { avg_cpi: 136.0, months_count: 12 },
+        2021 => { avg_cpi: 141.0, months_count: 12 }
+      }
+
+      @command.send(:create_calendar_cpi_reference_table, calendar_year_data, 2021)
+
+      # Verify table was created
+      tables_output, _, _ = Open3.capture3(
+        'sqlite-utils', 'tables', @db_path
+      )
+
+      assert tables_output.include?('calendar_cpi_inflation_indexes'), "Calendar CPI table should be created"
+
+      # Verify data and structure
+      query_output, stderr, status = Open3.capture3(
+        'sqlite-utils', 'query', @db_path,
+        "SELECT calendar_year, avg_cpi, months_count FROM calendar_cpi_inflation_indexes ORDER BY calendar_year", '--csv'
+      )
+
+      assert status.success?, "Query should succeed: #{stderr}"
+
+      # Parse CSV output - should have header + 2 data rows
+      lines = query_output.lines
+      assert_equal 3, lines.size, "Should have header + 2 records"
+
+      # First data row should be 2020
+      first_row = lines[1].strip.split(',')
+      assert_equal '2020', first_row[0], "First row should be calendar year 2020"
+
+      # Second data row should be 2021
+      second_row = lines[2].strip.split(',')
+      assert_equal '2021', second_row[0], "Second row should be calendar year 2021"
     end
   end
 

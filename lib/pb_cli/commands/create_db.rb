@@ -55,6 +55,34 @@ module PbCli
         new(db_path: db_path).set_read_optimized_settings
       end
 
+      # Load JSON files without creating/deleting database
+      # Used by initialize command when database already exists with statscan data
+      def load_json_files_only
+        # Find all JSON files
+        json_files = Dir.glob(File.join(@data_dir, '*.json'))
+
+        if json_files.empty?
+          puts ::CLI::UI.fmt("{{x}} No JSON files found in #{@data_dir}")
+          puts "Run 'pb extract' first to generate data files"
+          return 1
+        end
+
+        # Process each JSON file
+        ::CLI::UI::Frame.open("Loading data into: #{@db_path}") do
+          json_files.each do |json_file|
+            table_name = File.basename(json_file, '.json')
+            insert_json_file(json_file, table_name)
+          end
+
+          # Show summary
+          puts ""
+          puts ::CLI::UI.fmt("{{v}} Data loaded successfully")
+          puts ::CLI::UI.fmt("{{v}} Tables: #{json_files.size}")
+        end
+
+        0
+      end
+
       def call(args)
         # Parse optional flags
         skip_optimization = args.include?('--skip-optimization')

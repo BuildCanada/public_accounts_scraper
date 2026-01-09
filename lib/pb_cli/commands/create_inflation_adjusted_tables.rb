@@ -8,6 +8,7 @@ module PbCli
     class CreateInflationAdjustedTables
       DEFAULT_DB_PATH = File.join(Dir.pwd, 'public_accounts.db')
       CPI_TABLE_NAME = 'cpi_inflation_indexes'
+      CALENDAR_CPI_TABLE_NAME = 'calendar_cpi_inflation_indexes'
       MIN_INDEX_YEAR = 2017
 
       def initialize(paths = {})
@@ -32,39 +33,52 @@ module PbCli
           puts ""
 
           # Step 3: Calculate fiscal year averages
-          puts ::CLI::UI.fmt("{{*}} Step 2/4: Calculating fiscal year averages")
+          puts ::CLI::UI.fmt("{{*}} Step 2/5: Calculating fiscal year averages")
           fiscal_year_data = calculate_fiscal_year_averages(cpi_data)
           puts ::CLI::UI.fmt("{{v}} Calculated averages for #{fiscal_year_data.size} fiscal years")
           puts ""
 
-          # Step 4: Detect latest complete year
-          puts ::CLI::UI.fmt("{{*}} Step 3/4: Creating CPI reference table")
-          latest_year = detect_latest_complete_year(fiscal_year_data)
-          unless latest_year
-            return 1
-          end
-          puts ::CLI::UI.fmt("{{v}} Latest complete fiscal year: #{latest_year}")
-
-          # Create CPI reference table
-          create_cpi_reference_table(fiscal_year_data, latest_year)
+          # Step 4: Calculate calendar year averages
+          puts ::CLI::UI.fmt("{{*}} Step 3/5: Calculating calendar year averages")
+          calendar_year_data = calculate_calendar_year_averages(cpi_data)
+          puts ::CLI::UI.fmt("{{v}} Calculated averages for #{calendar_year_data.size} calendar years")
           puts ""
 
-          # Step 5: Create inflation-adjusted views
-          puts ::CLI::UI.fmt("{{*}} Step 4/4: Creating inflation-adjusted views")
+          # Step 5: Detect latest complete years and create CPI reference tables
+          puts ::CLI::UI.fmt("{{*}} Step 4/5: Creating CPI reference tables")
+          latest_fiscal_year = detect_latest_complete_year(fiscal_year_data)
+          unless latest_fiscal_year
+            return 1
+          end
+          puts ::CLI::UI.fmt("{{v}} Latest complete fiscal year: #{latest_fiscal_year}")
+
+          latest_calendar_year = detect_latest_complete_year(calendar_year_data)
+          unless latest_calendar_year
+            return 1
+          end
+          puts ::CLI::UI.fmt("{{v}} Latest complete calendar year: #{latest_calendar_year}")
+
+          # Create CPI reference tables
+          create_cpi_reference_table(fiscal_year_data, latest_fiscal_year)
+          create_calendar_cpi_reference_table(calendar_year_data, latest_calendar_year)
+          puts ""
+
+          # Step 6: Create inflation-adjusted views
+          puts ::CLI::UI.fmt("{{*}} Step 5/5: Creating inflation-adjusted views")
           tables = get_non_statscan_tables
 
           if tables.empty?
             puts ::CLI::UI.fmt("{{i}} No non-statscan tables found")
           else
             tables.each do |table_name|
-              create_inflation_adjusted_view(table_name, latest_year)
+              create_inflation_adjusted_view(table_name, latest_fiscal_year)
             end
           end
           puts ""
 
           puts ::CLI::UI.fmt("{{v}} Inflation adjustment complete!")
           puts ::CLI::UI.fmt("{{v}} Database: #{@db_path}")
-          puts ::CLI::UI.fmt("{{v}} Reference table: #{CPI_TABLE_NAME}")
+          puts ::CLI::UI.fmt("{{v}} Reference tables: #{CPI_TABLE_NAME}, #{CALENDAR_CPI_TABLE_NAME}")
           puts ::CLI::UI.fmt("{{v}} Views created: #{tables.size}")
         end
 
@@ -177,6 +191,29 @@ module PbCli
         end
       end
 
+      def calculate_calendar_year_averages(cpi_data)
+        # Group by calendar year (January through December)
+        calendar_years = {}
+
+        cpi_data.each do |record|
+          # Parse YYYY-MM format
+          year, month = record[:ref_date].split('-').map(&:to_i)
+
+          calendar_years[year] ||= { values: [], months: [] }
+          calendar_years[year][:values] << record[:value]
+          calendar_years[year][:months] << "#{year}-#{month.to_s.rjust(2, '0')}"
+        end
+
+        # Calculate averages
+        calendar_years.transform_values do |data|
+          {
+            avg_cpi: data[:values].sum / data[:values].size.to_f,
+            months_count: data[:values].size,
+            months: data[:months].sort
+          }
+        end
+      end
+
       def detect_latest_complete_year(fiscal_year_data)
         # Find latest fiscal year with at least 11 months of data
         complete_years = fiscal_year_data.select { |year, data| data[:months_count] >= 11 }
@@ -197,10 +234,10 @@ module PbCli
 
           # Calculate index columns (from MIN_INDEX_YEAR to latest_year)
           index_years = (MIN_INDEX_YEAR..latest_year).to_a
-          records = calculate_index_columns(fiscal_year_data, index_years)
+          records = calculate_index_columns(fiscal_year_data, index_years, 'fiscal_year')
 
           # Insert data using sqlite-utils
-          insert_cpi_reference_data(records)
+          insert_cpi_reference_data(records, CPI_TABLE_NAME, 'fiscal_year')
 
           puts ::CLI::UI.fmt("{{v}} Created table: #{CPI_TABLE_NAME}")
           puts ::CLI::UI.fmt("{{v}} Fiscal years: #{records.size}")
@@ -208,12 +245,31 @@ module PbCli
         end
       end
 
-      def calculate_index_columns(fiscal_year_data, index_years)
+      def create_calendar_cpi_reference_table(calendar_year_data, latest_year)
+        ::CLI::UI::Frame.open("Creating calendar year CPI reference table") do
+          # Drop existing table if it exists
+          drop_sql = "DROP TABLE IF EXISTS #{CALENDAR_CPI_TABLE_NAME}"
+          execute_query(drop_sql)
+
+          # Calculate index columns (from MIN_INDEX_YEAR to latest_year)
+          index_years = (MIN_INDEX_YEAR..latest_year).to_a
+          records = calculate_index_columns(calendar_year_data, index_years, 'calendar_year')
+
+          # Insert data using sqlite-utils
+          insert_cpi_reference_data(records, CALENDAR_CPI_TABLE_NAME, 'calendar_year')
+
+          puts ::CLI::UI.fmt("{{v}} Created table: #{CALENDAR_CPI_TABLE_NAME}")
+          puts ::CLI::UI.fmt("{{v}} Calendar years: #{records.size}")
+          puts ::CLI::UI.fmt("{{v}} Index columns: #{index_years.size} (#{MIN_INDEX_YEAR}-#{latest_year})")
+        end
+      end
+
+      def calculate_index_columns(year_data, index_years, year_column = 'fiscal_year')
         records = []
 
-        fiscal_year_data.each do |fiscal_year, data|
+        year_data.each do |year, data|
           record = {
-            'fiscal_year' => fiscal_year,
+            year_column => year,
             'avg_cpi' => data[:avg_cpi].round(2),
             'months_count' => data[:months_count]
           }
@@ -221,9 +277,9 @@ module PbCli
           # Calculate index for each target year
           # index_YYYY = target_year_avg_cpi / this_year_avg_cpi
           index_years.each do |target_year|
-            next unless fiscal_year_data[target_year]
+            next unless year_data[target_year]
 
-            target_avg_cpi = fiscal_year_data[target_year][:avg_cpi]
+            target_avg_cpi = year_data[target_year][:avg_cpi]
             index_value = target_avg_cpi / data[:avg_cpi]
 
             record["index_#{target_year}"] = index_value.round(4)
@@ -232,10 +288,10 @@ module PbCli
           records << record
         end
 
-        records.sort_by { |r| r['fiscal_year'] }
+        records.sort_by { |r| r[year_column] }
       end
 
-      def insert_cpi_reference_data(records)
+      def insert_cpi_reference_data(records, table_name = CPI_TABLE_NAME, pk_column = 'fiscal_year')
         # Write records to temporary JSON file
         temp_file = Tempfile.new(['cpi_indexes', '.json'])
         begin
@@ -246,10 +302,10 @@ module PbCli
           cmd = [
             'sqlite-utils', 'insert',
             @db_path,
-            CPI_TABLE_NAME,
+            table_name,
             temp_file.path,
             '--alter',
-            '--pk=fiscal_year',
+            "--pk=#{pk_column}",
             '--replace'
           ]
 
@@ -273,6 +329,7 @@ module PbCli
             AND name NOT LIKE 'statscan_%'
             AND name NOT LIKE 'sqlite_%'
             AND name != '#{CPI_TABLE_NAME}'
+            AND name != '#{CALENDAR_CPI_TABLE_NAME}'
           ORDER BY name
         SQL
 

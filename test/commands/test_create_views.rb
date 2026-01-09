@@ -144,6 +144,70 @@ class TestCreateViews < Minitest::Test
     assert_equal 0, result2, "Should succeed when run multiple times (IF NOT EXISTS)"
   end
 
+  def test_childrens_benefits_view_includes_tax_system_data
+    skip "sqlite3 not installed" unless sqlite3_installed?
+
+    # Create database with transfer data including tax system rows
+    create_transfer_test_database
+
+    # Create the childrens_benefits view SQL file (matching real view)
+    sql = <<~SQL
+      SELECT
+        year,
+        MAX(CASE WHEN province_territory = 'Ontario' THEN childrens_benefits END) AS "Ontario",
+        COALESCE(
+          MAX(CASE WHEN province_territory = 'Transfers made through the tax system' THEN childrens_benefits END),
+          MAX(CASE WHEN province_territory = 'Add: transfers made through the tax system' THEN childrens_benefits END)
+        ) AS "Tax System"
+      FROM major_transfers_by_provinces_and_territories_inflation_adjusted
+      WHERE is_total_or_subtotal = 0
+         OR province_territory IN ('Transfers made through the tax system', 'Add: transfers made through the tax system')
+      GROUP BY year
+      ORDER BY year
+    SQL
+    create_sql_file('childrens_benefits.sql', sql)
+
+    command = PbCli::Commands::CreateViews.new(db_path: @db_path, views_dir: @views_dir)
+    command.call([])
+
+    # Verify view returns tax system data
+    output = `sqlite3 -separator '|' '#{@db_path}' "SELECT year, \\\"Tax System\\\" FROM childrens_benefits WHERE \\\"Tax System\\\" IS NOT NULL" 2>&1`
+    assert output.include?('2016|22949.43'), "View should include 2016 tax system data: #{output}"
+    assert output.include?('2012|17075.75'), "View should include 2012 'Add: transfers made through the tax system' data: #{output}"
+  end
+
+  def test_early_learning_view_includes_accrual_adjustments_data
+    skip "sqlite3 not installed" unless sqlite3_installed?
+
+    # Create database with transfer data including accrual adjustment rows
+    create_transfer_test_database
+
+    # Create the canadawide_early_learning_and_child_care view SQL file (matching real view)
+    sql = <<~SQL
+      SELECT
+        year,
+        MAX(CASE WHEN province_territory = 'Ontario' THEN canadawide_early_learning_and_child_care END) AS "Ontario",
+        COALESCE(
+          MAX(CASE WHEN province_territory = 'Accrual and other adjustments' THEN canadawide_early_learning_and_child_care END),
+          MAX(CASE WHEN province_territory = 'Accrual and other  adjustments' THEN canadawide_early_learning_and_child_care END)
+        ) AS "Accrual Adjustments"
+      FROM major_transfers_by_provinces_and_territories_inflation_adjusted
+      WHERE is_total_or_subtotal = 0
+         OR province_territory IN ('Accrual and other adjustments', 'Accrual and other  adjustments')
+      GROUP BY year
+      ORDER BY year
+    SQL
+    create_sql_file('canadawide_early_learning_and_child_care.sql', sql)
+
+    command = PbCli::Commands::CreateViews.new(db_path: @db_path, views_dir: @views_dir)
+    command.call([])
+
+    # Verify view returns accrual adjustments data
+    output = `sqlite3 -separator '|' '#{@db_path}' "SELECT year, \\\"Accrual Adjustments\\\" FROM canadawide_early_learning_and_child_care WHERE \\\"Accrual Adjustments\\\" IS NOT NULL" 2>&1`
+    assert output.include?('2022|3320.04'), "View should include 2022 accrual adjustments data: #{output}"
+    assert output.include?('2023|4741.73'), "View should include 2023 accrual adjustments data: #{output}"
+  end
+
   private
 
   def sqlite3_installed?
@@ -173,5 +237,46 @@ class TestCreateViews < Minitest::Test
 
   def create_sql_file(filename, query)
     File.write(File.join(@views_dir, filename), query)
+  end
+
+  def create_transfer_test_database
+    # Create table structure matching real data
+    `sqlite3 '#{@db_path}' "
+      CREATE TABLE major_transfers_by_provinces_and_territories_inflation_adjusted (
+        year INTEGER,
+        province_territory TEXT,
+        is_total_or_subtotal INTEGER,
+        childrens_benefits REAL,
+        canadawide_early_learning_and_child_care REAL
+      )
+    "`
+
+    # Insert test data simulating real patterns:
+    # - Provinces have is_total_or_subtotal = 0 but NULL for these columns
+    # - Tax system rows have is_total_or_subtotal = 1 and contain childrens_benefits data
+    # - Accrual adjustment rows have is_total_or_subtotal = 1 and contain early learning data
+    `sqlite3 '#{@db_path}' "
+      INSERT INTO major_transfers_by_provinces_and_territories_inflation_adjusted VALUES
+        -- 2012: Ontario province row (no data for these columns)
+        (2012, 'Ontario', 0, NULL, NULL),
+        -- 2012: Old format for tax system (is_total_or_subtotal = 1)
+        (2012, 'Add: transfers made through the tax system', 1, 17075.75, NULL),
+        -- 2016: Ontario province row (no data for these columns)
+        (2016, 'Ontario', 0, NULL, NULL),
+        -- 2016: New format for tax system (is_total_or_subtotal = 1)
+        (2016, 'Transfers made through the tax system', 1, 22949.43, NULL),
+        -- 2022: Ontario province row (no data for these columns)
+        (2022, 'Ontario', 0, NULL, NULL),
+        -- 2022: Tax system row
+        (2022, 'Transfers made through the tax system', 1, 29535.72, NULL),
+        -- 2022: Accrual adjustments row (is_total_or_subtotal = 1)
+        (2022, 'Accrual and other adjustments', 1, NULL, 3320.04),
+        -- 2023: Ontario province row (no data for these columns)
+        (2023, 'Ontario', 0, NULL, NULL),
+        -- 2023: Tax system row
+        (2023, 'Transfers made through the tax system', 1, 25935.33, NULL),
+        -- 2023: Accrual adjustments row (is_total_or_subtotal = 1)
+        (2023, 'Accrual and other adjustments', 1, NULL, 4741.73)
+    "`
   end
 end
