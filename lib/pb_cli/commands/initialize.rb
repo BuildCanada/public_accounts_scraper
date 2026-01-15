@@ -20,13 +20,13 @@ module PbCli
 
         ::CLI::UI::Frame.open("Initializing database") do
           # Step 1: Delete existing database (and cache if --force)
-          puts ::CLI::UI.fmt("{{*}} Step 1/8: Cleaning up existing database")
+          puts ::CLI::UI.fmt("{{*}} Step 1/11: Cleaning up existing database")
           delete_existing_database
           delete_statscan_cache if force
           puts ""
 
           # Step 2: Initialize statscan cache (or use existing)
-          puts ::CLI::UI.fmt("{{*}} Step 2/8: Initializing Statistics Canada data cache")
+          puts ::CLI::UI.fmt("{{*}} Step 2/11: Initializing Statistics Canada data cache")
           statscan_result = initialize_statscan_cache
           if statscan_result != 0
             puts ::CLI::UI.fmt("{{x}} Statistics Canada cache initialization failed")
@@ -35,12 +35,12 @@ module PbCli
           puts ""
 
           # Step 3: Copy statscan cache as base database
-          puts ::CLI::UI.fmt("{{*}} Step 3/8: Copying statscan cache as base database")
+          puts ::CLI::UI.fmt("{{*}} Step 3/11: Copying statscan cache as base database")
           copy_statscan_cache
           puts ""
 
-          # Step 4: Extract data
-          puts ::CLI::UI.fmt("{{*}} Step 4/8: Extracting data")
+          # Step 4: Extract data from HTML
+          puts ::CLI::UI.fmt("{{*}} Step 4/11: Extracting data from HTML")
           extract_result = run_extract
           if extract_result != 0
             puts ::CLI::UI.fmt("{{x}} Extract failed")
@@ -49,7 +49,7 @@ module PbCli
           puts ""
 
           # Step 5: Load extracted data into database
-          puts ::CLI::UI.fmt("{{*}} Step 5/8: Loading extracted data")
+          puts ::CLI::UI.fmt("{{*}} Step 5/11: Loading extracted data")
           load_result = load_extracted_data
           if load_result != 0
             puts ::CLI::UI.fmt("{{x}} Load extracted data failed")
@@ -57,8 +57,26 @@ module PbCli
           end
           puts ""
 
-          # Step 6: Normalize transfer payment descriptions
-          puts ::CLI::UI.fmt("{{*}} Step 6/8: Normalizing transfer payment descriptions")
+          # Step 6: Download open data tables
+          puts ::CLI::UI.fmt("{{*}} Step 6/11: Downloading open data tables")
+          download_result = run_download_tables
+          # Don't fail if download fails (network issues, etc.)
+          if download_result != 0
+            puts ::CLI::UI.fmt("{{!}} Open data download had issues - continuing")
+          end
+          puts ""
+
+          # Step 7: Import open data tables
+          puts ::CLI::UI.fmt("{{*}} Step 7/11: Importing open data tables")
+          import_result = run_import_tables
+          # Don't fail if import fails (may not have downloaded data)
+          if import_result != 0
+            puts ::CLI::UI.fmt("{{!}} Open data import had issues - continuing")
+          end
+          puts ""
+
+          # Step 8: Normalize transfer payment descriptions
+          puts ::CLI::UI.fmt("{{*}} Step 8/11: Normalizing transfer payment descriptions")
           normalize_result = run_normalize_descriptions
           if normalize_result != 0
             puts ::CLI::UI.fmt("{{x}} Normalize descriptions failed")
@@ -66,8 +84,8 @@ module PbCli
           end
           puts ""
 
-          # Step 7: Create inflation-adjusted tables
-          puts ::CLI::UI.fmt("{{*}} Step 7/8: Creating inflation-adjusted tables")
+          # Step 9: Create inflation-adjusted tables
+          puts ::CLI::UI.fmt("{{*}} Step 9/11: Creating inflation-adjusted tables")
           inflation_result = run_create_inflation_adjusted_tables
           if inflation_result != 0
             puts ::CLI::UI.fmt("{{x}} Create inflation-adjusted tables failed")
@@ -78,9 +96,14 @@ module PbCli
           run_normalize_descriptions_update
           puts ""
 
-          # Step 8: Create views and optimize
-          puts ::CLI::UI.fmt("{{*}} Step 8/8: Creating views and optimizing database")
+          # Step 10: Create views
+          puts ::CLI::UI.fmt("{{*}} Step 10/11: Creating views")
           run_create_views
+          puts ""
+
+          # Step 11: Create consolidated metadata and optimize
+          puts ::CLI::UI.fmt("{{*}} Step 11/11: Creating consolidated metadata and optimizing database")
+          run_create_metadata
           optimize_for_reads
           puts ""
 
@@ -165,6 +188,16 @@ module PbCli
         Commands::Extract.new(@paths).call([])
       end
 
+      def run_download_tables
+        require_relative 'download_tables'
+        Commands::DownloadTables.new(@paths).call([])
+      end
+
+      def run_import_tables
+        require_relative 'import_tables'
+        Commands::ImportTables.new(@paths).call([])
+      end
+
       def load_extracted_data
         require_relative 'create_db'
         # Use a custom load that doesn't delete the database
@@ -189,6 +222,11 @@ module PbCli
       def run_create_views
         require_relative 'create_views'
         Commands::CreateViews.new(@paths).call([])
+      end
+
+      def run_create_metadata
+        require_relative 'create_metadata'
+        Commands::CreateMetadata.new(@paths).call([])
       end
 
       def optimize_for_reads
