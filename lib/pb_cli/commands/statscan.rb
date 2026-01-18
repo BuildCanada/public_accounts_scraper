@@ -9,6 +9,7 @@ module PbCli
         'cpi_monthly' => '1810000401',
         'employment_rate' => '1410028701',
         'gdp_monthly' => '3610022201',
+        'international_merchandise_trade' => '1210017101',
         'population_july1' => '1710000501',
         'population_quarterly' => '1710000901'
       }.freeze

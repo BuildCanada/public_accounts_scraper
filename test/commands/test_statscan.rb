@@ -35,6 +35,11 @@ module PbCli
         assert_equal '3610022201', Statscan::DATASETS['gdp_monthly']
       end
 
+      def test_international_merchandise_trade_dataset_exists
+        assert Statscan::DATASETS.key?('international_merchandise_trade')
+        assert_equal '1210017101', Statscan::DATASETS['international_merchandise_trade']
+      end
+
       def test_population_july1_dataset_exists
         assert Statscan::DATASETS.key?('population_july1')
         assert_equal '1710000501', Statscan::DATASETS['population_july1']
